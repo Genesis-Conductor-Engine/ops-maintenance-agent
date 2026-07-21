@@ -26,7 +26,9 @@ const RESTART_ALLOWLIST = [
   "qmem-sync",
   "genesis-ops-stream",
   "cloudflared",
+  "cloudflared-inference",
   "ops-maintenance-http",
+  "ops-inference-meter",
 ];
 
 const FORBIDDEN = new Set(["ssh", "sshd", "ssh.service", "sshd.service"]);

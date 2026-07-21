@@ -1,0 +1,19 @@
+[Unit]
+Description=Diamondnode metered inference API (R01/R02)
+After=network.target redis-server.service qmem-llama-server.service
+Wants=redis-server.service qmem-llama-server.service
+
+[Service]
+Type=simple
+WorkingDirectory=/root/ops-maintenance-agent
+EnvironmentFile=-/root/.vault/env/agent.env
+Environment=INFERENCE_METER_PORT=8792
+Environment=QMEM_URL=http://127.0.0.1:8082
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/inference-meter.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

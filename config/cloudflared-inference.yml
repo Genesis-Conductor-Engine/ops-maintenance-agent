@@ -13,8 +13,10 @@ transport-loglevel: warn
 no-autoupdate: true
 
 ingress:
+  # Public /admin/* never reaches origin — 404 at the edge. Admin is localhost-only (:8792).
   - hostname: inference.yennefer.quest
-    service: http://127.0.0.1:8792
-  - hostname: inference.genesisconductor.io.yennefer.quest
+    path: ^/admin.*
+    service: http_status:404
+  - hostname: inference.yennefer.quest
     service: http://127.0.0.1:8792
   - service: http_status:404

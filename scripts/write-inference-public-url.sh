@@ -2,11 +2,15 @@
 # Write public inference base URL after tunnel is configured.
 # Named tunnel path is deterministic. Quick-tunnel fallback parses cloudflared logs
 # for a trycloudflare.com URL (no tokens/secrets are written).
+#
+# Runtime artifacts go under reports/ only (avoids dirtying committed config/ on every restart).
+# Optional: set INFERENCE_WRITE_CONFIG=1 to also refresh config/inference-public.json.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPORTS="${ROOT}/reports"
 CONFIG_JSON="${ROOT}/config/inference-public.json"
+RUNTIME_JSON="${REPORTS}/inference-public.json"
 URL_TXT="${REPORTS}/inference-public-url.txt"
 LOG_HINT="${1:-}"
 
@@ -41,11 +45,7 @@ fi
 # Strip trailing slash
 PUBLIC_URL="${PUBLIC_URL%/}"
 
-umask 022
-printf '%s\n' "${PUBLIC_URL}" > "${URL_TXT}"
-
-# config/inference-public.json is safe to commit (public URL only — no tokens)
-cat > "${CONFIG_JSON}" <<EOF
+PAYLOAD=$(cat <<EOF
 {
   "service": "diamondnode-inference-meter",
   "stream": "R01",
@@ -59,10 +59,20 @@ cat > "${CONFIG_JSON}" <<EOF
     "pricing": "${PUBLIC_URL}/pricing",
     "chat_completions": "${PUBLIC_URL}/v1/chat/completions"
   },
-  "notes": "Named tunnel DNS zone follows origin cert (yennefer.quest). Point inference.genesisconductor.io CNAME to the same tunnel when CF zone access allows. Never store tunnel tokens in this file.",
+  "notes": "Named tunnel DNS zone follows origin cert (yennefer.quest). Point inference.genesisconductor.io CNAME to the same tunnel when CF zone access allows. Never store tunnel tokens in this file. Admin routes are localhost-only.",
   "updated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 }
 EOF
+)
+
+umask 022
+printf '%s\n' "${PUBLIC_URL}" > "${URL_TXT}"
+printf '%s\n' "${PAYLOAD}" > "${RUNTIME_JSON}"
 
 echo "[inference-public] wrote ${URL_TXT} → ${PUBLIC_URL} (${MODE})"
-echo "[inference-public] wrote ${CONFIG_JSON}"
+echo "[inference-public] wrote ${RUNTIME_JSON}"
+
+if [[ "${INFERENCE_WRITE_CONFIG:-0}" == "1" ]]; then
+  printf '%s\n' "${PAYLOAD}" > "${CONFIG_JSON}"
+  echo "[inference-public] wrote ${CONFIG_JSON} (INFERENCE_WRITE_CONFIG=1)"
+fi

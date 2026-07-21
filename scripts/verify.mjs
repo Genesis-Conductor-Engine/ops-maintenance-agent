@@ -18,6 +18,8 @@ const SERVICES = [
   "qmem-sync",
   "genesis-ops-stream",
   "cloudflared",
+  "cloudflared-inference",
+  "ops-inference-meter",
 ];
 
 function sh(cmd, opts = {}) {

@@ -20,7 +20,9 @@ const CORE_SERVICES = [
   "qmem-sync",
   "genesis-ops-stream",
   "cloudflared",
+  "cloudflared-inference",
   "ops-maintenance-http",
+  "ops-inference-meter",
 ];
 
 // Grep seeds — prefer specific phrases; classification uses stricter rules below.

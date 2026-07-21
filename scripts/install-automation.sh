@@ -17,6 +17,11 @@ shopt -s nullglob
 copied=0
 for f in "${UNIT_SRC}"/*.service "${UNIT_SRC}"/*.timer; do
   base="$(basename "$f")"
+  # Never install example units as live services
+  if [[ "$base" == *.example ]]; then
+    echo "  ~ skip example: ${base}"
+    continue
+  fi
   cp -f "$f" "${UNIT_DST}/${base}"
   echo "  + ${base}"
   copied=$((copied + 1))
@@ -44,6 +49,38 @@ for u in "${ENABLE_UNITS[@]}"; do
   echo "  enabled: $u"
 done
 
+# Inference meter (R01) — enable when unit is installed
+if [[ -f "${UNIT_DST}/ops-inference-meter.service" ]]; then
+  systemctl enable ops-inference-meter.service
+  echo "  enabled: ops-inference-meter.service"
+  if systemctl is-active --quiet ops-inference-meter.service; then
+    echo "[install] ops-inference-meter already active"
+  else
+    echo "[install] starting ops-inference-meter"
+    systemctl start ops-inference-meter.service || \
+      echo "[install] WARN: ops-inference-meter failed to start (check journal)" >&2
+  fi
+else
+  echo "[install] skip ops-inference-meter (unit missing after copy)"
+fi
+
+# Named inference tunnel — enable only when credentials + config exist
+CF_CREDS="/home/diamondnode/.cloudflared/af9cf2e4-0119-4f2a-ba66-19b8c8a23080.json"
+CF_CFG="${ROOT}/config/cloudflared-inference.yml"
+if [[ -f "${UNIT_DST}/cloudflared-inference.service" && -f "${CF_CREDS}" && -f "${CF_CFG}" ]]; then
+  systemctl enable cloudflared-inference.service
+  echo "  enabled: cloudflared-inference.service"
+  if systemctl is-active --quiet cloudflared-inference.service; then
+    echo "[install] cloudflared-inference already active"
+  else
+    echo "[install] starting cloudflared-inference"
+    systemctl start cloudflared-inference.service || \
+      echo "[install] WARN: cloudflared-inference failed to start (check journal)" >&2
+  fi
+else
+  echo "[install] skip cloudflared-inference (need unit + credentials + ${CF_CFG})"
+fi
+
 if systemctl is-active --quiet ops-maintenance-http.service; then
   echo "[install] ops-maintenance-http already active"
 else
@@ -69,7 +106,9 @@ for u in \
   ops-maintenance-cycle.timer \
   ops-crash-analyze.timer \
   ops-crash-analyze.service \
-  ops-maintenance-cycle.service
+  ops-maintenance-cycle.service \
+  ops-inference-meter.service \
+  cloudflared-inference.service
 do
   if systemctl cat "$u" &>/dev/null; then
     en="$(systemctl is-enabled "$u" 2>/dev/null || true)"

@@ -441,7 +441,7 @@ const server = http.createServer(async (req, res) => {
         story: "Sovereign LLM Inference API on diamondnode (q-mem + ollama dual-backend)",
         pricing: TIERS,
         checkout_note:
-          "Issue keys via POST /admin/keys with admin token. Stripe checkout for telemetry is at api.genesisconductor.io/pricing.",
+          "Contact sales or use the Genesis Conductor billing portal to obtain an API key. Public Stripe checkout: https://api.genesisconductor.io/pricing",
       });
     }
 
@@ -527,8 +527,6 @@ const server = http.createServer(async (req, res) => {
         "GET /v1/models",
         "POST /v1/chat/completions",
         "POST /v1/completions",
-        "POST /admin/keys",
-        "GET /admin/revenue",
       ],
     });
   } catch (e) {

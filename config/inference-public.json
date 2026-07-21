@@ -11,6 +11,6 @@
     "pricing": "https://inference.yennefer.quest/pricing",
     "chat_completions": "https://inference.yennefer.quest/v1/chat/completions"
   },
-  "notes": "Named tunnel DNS zone follows origin cert (yennefer.quest). Point inference.genesisconductor.io CNAME to the same tunnel when CF zone access allows. Never store tunnel tokens in this file.",
+  "notes": "Named tunnel DNS zone follows origin cert (yennefer.quest). Point inference.genesisconductor.io CNAME to the same tunnel when CF zone access allows. Never store tunnel tokens in this file. Admin routes are localhost-only (public /admin → 404 at tunnel). Runtime URL snapshot: reports/inference-public.json.",
   "updated_at": "2026-07-21T02:41:22Z"
 }
