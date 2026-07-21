@@ -4,7 +4,7 @@
  * Story: operator health → services → gateway → Kimi reachability → optional gh/axiom/sentry.
  */
 import { execSync } from "node:child_process";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const SERVICES = [
@@ -21,6 +21,8 @@ const SERVICES = [
   "cloudflared-inference",
   "ops-inference-meter",
 ];
+
+const INFERENCE_LOCAL = process.env.INFERENCE_METER_URL || "http://127.0.0.1:8792";
 
 function sh(cmd, opts = {}) {
   try {
@@ -137,6 +139,116 @@ function checkGh() {
   };
 }
 
+/**
+ * Load public inference base URL from config + reports (non-secret).
+ * trycloudflare hostnames are accepted; never critical by themselves.
+ */
+export function loadInferencePublicUrl() {
+  const root = process.cwd();
+  const candidates = [
+    join(root, "config", "inference-public.json"),
+    join(root, "reports", "inference-public.json"),
+  ];
+  let fromJson = null;
+  let jsonPath = null;
+  for (const p of candidates) {
+    if (!existsSync(p)) continue;
+    try {
+      const j = JSON.parse(readFileSync(p, "utf8"));
+      const url = (j.public_base_url || j.public_url || j.url || "").trim();
+      if (url) {
+        fromJson = url.replace(/\/$/, "");
+        jsonPath = p;
+        break;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  const urlTxtPath = join(root, "reports", "inference-public-url.txt");
+  let fromTxt = null;
+  if (existsSync(urlTxtPath)) {
+    try {
+      fromTxt = readFileSync(urlTxtPath, "utf8").trim().split(/\s+/)[0] || null;
+      if (fromTxt) fromTxt = fromTxt.replace(/\/$/, "");
+    } catch {
+      /* ignore */
+    }
+  }
+  const publicUrl = fromJson || fromTxt || null;
+  const isTrycloudflare = Boolean(
+    publicUrl && /trycloudflare\.com/i.test(publicUrl)
+  );
+  return {
+    public_url: publicUrl,
+    source: fromJson ? jsonPath : fromTxt ? urlTxtPath : null,
+    file_present: Boolean(publicUrl),
+    is_trycloudflare: isTrycloudflare,
+    mode: isTrycloudflare ? "quick-tunnel" : publicUrl ? "named-or-custom" : "unset",
+  };
+}
+
+/**
+ * Inference meter health (local) + optional public URL presence.
+ * Public URL / trycloudflare is never a critical failure.
+ */
+export function checkInferenceMeter() {
+  const unit = sh("systemctl is-active ops-inference-meter").out || "unknown";
+  const tunnelUnit =
+    sh("systemctl is-active cloudflared-inference").out || "unknown";
+  const health = sh(`curl -sS -m 3 ${INFERENCE_LOCAL}/health`);
+  let healthJson = null;
+  let healthOk = false;
+  if (health.ok) {
+    try {
+      healthJson = JSON.parse(health.out);
+      healthOk = healthJson?.ok === true || healthJson?.service?.includes("inference");
+    } catch {
+      healthOk = /ok|inference/i.test(health.out);
+    }
+  }
+
+  const pub = loadInferencePublicUrl();
+  let publicProbe = { ok: false, skipped: true, detail: "no public URL" };
+  if (pub.public_url) {
+    const code = sh(
+      `curl -sS -m 5 -o /dev/null -w '%{http_code}' ${pub.public_url.replace(/'/g, "")}/health`
+    );
+    const httpOk = code.out === "200";
+    publicProbe = {
+      ok: httpOk,
+      skipped: false,
+      detail: httpOk
+        ? `${pub.public_url}/health → 200${pub.is_trycloudflare ? " (trycloudflare)" : ""}`
+        : `${pub.public_url}/health → ${code.out || "fail"}${pub.is_trycloudflare ? " (trycloudflare optional)" : ""}`,
+    };
+  }
+
+  // Local meter healthy = unit active OR HTTP ok (prefer both)
+  const localOk = unit === "active" && healthOk;
+  return {
+    unit,
+    tunnel_unit: tunnelUnit,
+    local: {
+      ok: localOk,
+      health_ok: healthOk,
+      detail: healthOk
+        ? `ops-inference-meter ${unit}; ${INFERENCE_LOCAL}/health ok`
+        : `ops-inference-meter ${unit}; health=${health.out?.slice(0, 120) || "fail"}`,
+      raw: healthJson,
+    },
+    public: {
+      ...pub,
+      probe: publicProbe,
+      // Presence is optional non-critical; trycloudflare is fine for go-live staging
+      ok: pub.file_present,
+      detail: pub.file_present
+        ? `${pub.public_url} (${pub.mode}) via ${pub.source}`
+        : "optional: config/inference-public.json or reports/inference-public-url.txt missing",
+    },
+  };
+}
+
 function checkObservability() {
   // Axiom deliberately skipped — local stack: Redis + genesis-ops SSE + Kimi + cashflow ledger
   const redis = sh("redis-cli ping");
@@ -201,6 +313,7 @@ export function runVerification() {
   const kimi = checkKimi();
   const gh = checkGh();
   const obs = checkObservability();
+  const inference = checkInferenceMeter();
 
   const flow = [
     {
@@ -212,6 +325,21 @@ export function runVerification() {
       boundary: "openclaw-gateway",
       status: boundaryStatus(services["openclaw-gateway"] === "active"),
       evidence: services["openclaw-gateway"],
+    },
+    {
+      boundary: "Inference meter (R01)",
+      status: boundaryStatus(inference.local.ok),
+      evidence: inference.local.detail,
+    },
+    {
+      boundary: "Inference public URL (optional)",
+      // File presence is informational; trycloudflare is never ❌-critical.
+      // Missing file → ⏭ (optional). Present → ✅ even if public probe soft-fails.
+      status: inference.public.file_present ? "✅" : "⏭",
+      evidence: inference.public.detail +
+        (inference.public.probe && !inference.public.probe.skipped
+          ? ` · ${inference.public.probe.detail}`
+          : ""),
     },
     {
       boundary: "Kimi reachability",
@@ -261,10 +389,12 @@ export function runVerification() {
   ];
 
   const blocked = flow.filter((f) => f.status === "❌");
-  // Critical path = services + Kimi. gh optional; axiom/sentry skipped by policy.
+  // Critical path = services + Kimi + local inference meter.
+  // Public URL / trycloudflare / gh / axiom / sentry are optional.
   const criticalBoundaries = new Set([
     "Core services (systemd)",
     "openclaw-gateway",
+    "Inference meter (R01)",
     "Kimi reachability",
     "Kimi bot identity",
     "Redis (cashflow + cache)",
@@ -276,6 +406,7 @@ export function runVerification() {
     started,
     finished: new Date().toISOString(),
     services,
+    inference,
     kimi,
     gh: {
       auth: gh.auth,
@@ -294,6 +425,8 @@ export function runVerification() {
         .map((b) => b.boundary),
       healthyServices: activeCount,
       totalServices: SERVICES.length,
+      inference_meter_ok: inference.local.ok,
+      inference_public_url: inference.public.public_url || null,
     },
   };
 
@@ -328,6 +461,10 @@ function formatMarkdown(report) {
     ``,
     `### Working`,
     `- Services: ${report.summary.healthyServices}/${report.summary.totalServices}`,
+    `- Inference meter: ${report.summary.inference_meter_ok ? "healthy" : "down"}` +
+      (report.summary.inference_public_url
+        ? ` · public ${report.summary.inference_public_url}`
+        : ""),
     `- Kimi bot: OpenClaw-moY`,
   ];
   return lines.join("\n");

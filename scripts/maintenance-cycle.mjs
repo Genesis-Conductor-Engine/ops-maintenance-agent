@@ -9,9 +9,19 @@
  * Healthy path skips analysis/heal. Never restarts ssh.
  */
 import { execSync } from "node:child_process";
-import { writeFileSync, mkdirSync } from "node:fs";
+import {
+  writeFileSync,
+  mkdirSync,
+  readFileSync,
+  existsSync,
+} from "node:fs";
 import { join } from "node:path";
-import { runVerification, formatMarkdown } from "./verify.mjs";
+import {
+  runVerification,
+  formatMarkdown,
+  loadInferencePublicUrl,
+  checkInferenceMeter,
+} from "./verify.mjs";
 import { runPrBabysitAll } from "./pr-babysit.mjs";
 import { sendKimiUpdate, buildMessage } from "./kimi-update.mjs";
 import { runCrashAnalysis } from "./crash-analyze.mjs";
@@ -25,6 +35,24 @@ import {
   formatDeployBrief,
 } from "./deployments-audit.mjs";
 
+function sh(cmd, opts = {}) {
+  try {
+    return {
+      ok: true,
+      out: execSync(cmd, {
+        encoding: "utf8",
+        timeout: opts.timeout ?? 30_000,
+        stdio: ["ignore", "pipe", "pipe"],
+      }).trim(),
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      out: (e.stdout || e.stderr || e.message || String(e)).toString().trim(),
+    };
+  }
+}
+
 function isUnitActive(unit) {
   try {
     const out = execSync(`systemctl is-active ${unit}`, {
@@ -36,6 +64,210 @@ function isUnitActive(unit) {
   } catch {
     return false;
   }
+}
+
+function readVaultSecret(name) {
+  const paths = [
+    join("/root/.vault/secrets", name),
+    join(process.cwd(), ".vault", "secrets", name),
+  ];
+  for (const p of paths) {
+    if (!existsSync(p)) continue;
+    try {
+      return readFileSync(p, "utf8").trim();
+    } catch {
+      /* ignore */
+    }
+  }
+  // agent.env KEY=value (never log value)
+  const envFile = "/root/.vault/env/agent.env";
+  if (existsSync(envFile)) {
+    try {
+      const lines = readFileSync(envFile, "utf8").split("\n");
+      for (const line of lines) {
+        const m = line.match(new RegExp(`^\\s*${name}\\s*=\\s*(.*)$`));
+        if (m) {
+          return m[1].trim().replace(/^['"]|['"]$/g, "");
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return process.env[name] || "";
+}
+
+/**
+ * Snapshot R01 inference revenue + public URL for cycle summary / go-live.
+ * Never logs raw API keys or webhook secrets.
+ */
+function snapshotInferenceRevenue() {
+  const meterUrl = process.env.INFERENCE_METER_URL || "http://127.0.0.1:8792";
+  const pub = loadInferencePublicUrl();
+  const health = sh(`curl -sS -m 3 ${meterUrl}/health`);
+  let healthOk = false;
+  let healthBody = null;
+  if (health.ok) {
+    try {
+      healthBody = JSON.parse(health.out);
+      healthOk = healthBody?.ok === true;
+    } catch {
+      healthOk = false;
+    }
+  }
+
+  const admin = readVaultSecret("INFERENCE_ADMIN_TOKEN");
+  let revenue = null;
+  if (admin) {
+    const rev = sh(
+      `curl -sS -m 3 -H 'Authorization: Bearer ${admin.replace(/'/g, "")}' ${meterUrl}/admin/revenue`
+    );
+    if (rev.ok) {
+      try {
+        revenue = JSON.parse(rev.out);
+      } catch {
+        revenue = null;
+      }
+    }
+  }
+
+  // Fall back to local keys file estimated MRR if admin unavailable
+  if (!revenue) {
+    const keysPath = join(process.cwd(), "reports", "inference-keys.json");
+    if (existsSync(keysPath)) {
+      try {
+        const store = JSON.parse(readFileSync(keysPath, "utf8"));
+        const keys = Object.values(store.keys || {});
+        const tierPrice = { free: 0, starter: 29, pro: 149, enterprise: 999 };
+        let mrr = 0;
+        const byTier = {};
+        let active = 0;
+        for (const k of keys) {
+          if (!k.active) continue;
+          active += 1;
+          mrr += tierPrice[k.tier] ?? 0;
+          byTier[k.tier] = (byTier[k.tier] || 0) + 1;
+        }
+        revenue = {
+          active_keys: active,
+          by_tier: byTier,
+          estimated_mrr_usd: mrr,
+          stream: "R01",
+          source: "disk-fallback",
+        };
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  const webhookSecretPresent = Boolean(
+    readVaultSecret("STRIPE_WEBHOOK_SECRET") || process.env.STRIPE_WEBHOOK_SECRET
+  );
+  const checkoutStarter = Boolean(
+    readVaultSecret("STRIPE_CHECKOUT_STARTER_URL") ||
+      process.env.STRIPE_CHECKOUT_STARTER_URL
+  );
+  const checkoutPro = Boolean(
+    readVaultSecret("STRIPE_CHECKOUT_PRO_URL") || process.env.STRIPE_CHECKOUT_PRO_URL
+  );
+  const checkoutEnterprise = Boolean(
+    readVaultSecret("STRIPE_CHECKOUT_ENTERPRISE_URL") ||
+      process.env.STRIPE_CHECKOUT_ENTERPRISE_URL
+  );
+
+  const publicBase = pub.public_url || "https://inference.yennefer.quest";
+  const webhookEndpoint = `${publicBase.replace(/\/$/, "")}/webhook/stripe`;
+
+  return {
+    stream: "R01",
+    meter_health_ok: healthOk,
+    estimated_mrr: revenue?.estimated_mrr_usd ?? 0,
+    active_keys: revenue?.active_keys ?? 0,
+    by_tier: revenue?.by_tier || {},
+    usage_today: revenue?.usage_today || null,
+    public_url: pub.public_url,
+    public_url_mode: pub.mode,
+    public_url_file_present: pub.file_present,
+    is_trycloudflare: pub.is_trycloudflare,
+    webhook_endpoint: webhookEndpoint,
+    stripe_webhook_secret: webhookSecretPresent,
+    stripe_checkout_urls: {
+      starter: checkoutStarter,
+      pro: checkoutPro,
+      enterprise: checkoutEnterprise,
+    },
+    revenue_source: revenue?.source || (revenue ? "admin/revenue" : null),
+  };
+}
+
+function writeR01GoLive(inference, verificationReport) {
+  const outDir = join(process.cwd(), "reports");
+  mkdirSync(outDir, { recursive: true });
+  const meter = verificationReport?.inference || checkInferenceMeter();
+  const snap = {
+    stream: "R01",
+    product: "Metered Sovereign LLM API",
+    at: new Date().toISOString(),
+    readiness: {
+      meter_local_ok: Boolean(inference.meter_health_ok),
+      meter_unit_active: meter?.unit === "active" || isUnitActive("ops-inference-meter"),
+      tunnel_unit_active:
+        meter?.tunnel_unit === "active" || isUnitActive("cloudflared-inference"),
+      public_url_present: Boolean(inference.public_url),
+      public_url_mode: inference.public_url_mode || null,
+      is_trycloudflare: Boolean(inference.is_trycloudflare),
+      // trycloudflare is acceptable staging; named tunnel preferred for production
+      public_edge_ok:
+        Boolean(inference.public_url) &&
+        (meter?.public?.probe?.ok === true ||
+          inference.public_url_mode === "named-or-custom" ||
+          inference.is_trycloudflare),
+      stripe_webhook_secret: Boolean(inference.stripe_webhook_secret),
+      stripe_checkout_urls_any: Object.values(
+        inference.stripe_checkout_urls || {}
+      ).some(Boolean),
+      verification_ok: Boolean(verificationReport?.summary?.ok),
+    },
+    revenue: {
+      estimated_mrr: inference.estimated_mrr,
+      active_keys: inference.active_keys,
+      by_tier: inference.by_tier,
+    },
+    endpoints: {
+      public_base_url: inference.public_url,
+      health: inference.public_url
+        ? `${inference.public_url.replace(/\/$/, "")}/health`
+        : null,
+      pricing: inference.public_url
+        ? `${inference.public_url.replace(/\/$/, "")}/pricing`
+        : null,
+      chat_completions: inference.public_url
+        ? `${inference.public_url.replace(/\/$/, "")}/v1/chat/completions`
+        : null,
+      webhook_stripe: inference.webhook_endpoint,
+      issued_key: inference.public_url
+        ? `${inference.public_url.replace(/\/$/, "")}/issued-key?session_id=`
+        : null,
+      admin_revenue_localhost: "http://127.0.0.1:8792/admin/revenue",
+    },
+    go_live_blockers: [
+      !inference.meter_health_ok && "inference meter health down",
+      !inference.public_url && "public URL not written",
+      !inference.stripe_webhook_secret &&
+        "STRIPE_WEBHOOK_SECRET missing in vault (webhook returns 503 until set)",
+      !Object.values(inference.stripe_checkout_urls || {}).some(Boolean) &&
+        "Stripe checkout Payment Links not set (optional until Dashboard products exist)",
+    ].filter(Boolean),
+    notes: [
+      "Admin revenue/keys endpoints are localhost-only (public /admin → 404).",
+      "Configure Stripe Dashboard webhook → endpoints.webhook_stripe with checkout.session.completed.",
+      "trycloudflare public URL is non-critical for verification; prefer named tunnel for cash.",
+    ],
+  };
+  const path = join(outDir, "r01-go-live.json");
+  writeFileSync(path, JSON.stringify(snap, null, 2));
+  return { path, snap };
 }
 
 function listInactiveAllowlisted() {
@@ -127,11 +359,34 @@ async function main() {
     console.log("[cycle] healthy path — skip crash analysis and heal");
   }
 
-  console.log("[cycle] cashflow ledger…");
+  console.log("[cycle] inference revenue (R01)…");
+  let inference = null;
+  let inference_brief = "";
+  let r01_go_live = null;
   try {
-    const rev = sh("curl -sS -m 3 http://127.0.0.1:8792/health");
-    if (rev.ok) console.log("[cycle] inference-meter: " + rev.out.slice(0, 120));
-  } catch { /* optional */ }
+    inference = snapshotInferenceRevenue();
+    inference_brief =
+      `R01 inference: mrr≈$${inference.estimated_mrr} keys=${inference.active_keys}` +
+      ` url=${inference.public_url || "unset"}` +
+      ` webhook=${inference.stripe_webhook_secret ? "secret-set" : "secret-MISSING"}` +
+      (inference.is_trycloudflare ? " (trycloudflare)" : "");
+    console.log(`[cycle] ${inference_brief}`);
+    console.log(
+      `[cycle] R01 webhook endpoint: ${inference.webhook_endpoint}`
+    );
+    const written = writeR01GoLive(inference, report);
+    r01_go_live = {
+      path: written.path,
+      readiness: written.snap.readiness,
+      go_live_blockers: written.snap.go_live_blockers,
+    };
+    console.log(`[cycle] wrote ${written.path}`);
+  } catch (e) {
+    inference = { error: String(e?.message || e) };
+    console.error("[cycle] inference revenue error:", inference.error);
+  }
+
+  console.log("[cycle] cashflow ledger…");
   let cashflow = null;
   let cashflow_brief = "";
   try {
@@ -162,6 +417,7 @@ async function main() {
   }
 
   const extraParts = [
+    inference_brief || "R01 inference: unavailable",
     cashflow_brief || "Cashflow: unavailable",
     deploy_brief || "Deploy audit: unavailable",
     `PR babysit: ${pr.ok ? `watching ${pr.watched}` : `BLOCKED (${pr.blocked})`}`,
@@ -206,6 +462,18 @@ async function main() {
     needs_heal: needsHeal,
     crash_analysis,
     post_boot,
+    inference: inference
+      ? {
+          estimated_mrr: inference.estimated_mrr,
+          active_keys: inference.active_keys,
+          public_url: inference.public_url,
+          webhook_endpoint: inference.webhook_endpoint,
+          stripe_webhook_secret: inference.stripe_webhook_secret,
+          meter_health_ok: inference.meter_health_ok,
+          by_tier: inference.by_tier,
+        }
+      : null,
+    r01_go_live,
     cashflow: cashflow?.totals
       ? { totals: cashflow.totals, backend: cashflow.backend, updated_at: cashflow.updated_at }
       : cashflow,
