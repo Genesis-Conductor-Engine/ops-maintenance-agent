@@ -221,17 +221,17 @@ function patchIssuedSession(sessionId, patch) {
   return store.sessions[sessionId];
 }
 
-/** Map checkout session amount/metadata → paid tier id. */
+/**
+ * Map checkout session amount/metadata → paid tier id.
+ * Fail-closed: only metadata.tier/plan or exact cents in AMOUNT_TIER_CENTS.
+ * Unknown amounts return null — never default to starter.
+ */
 function tierFromCheckoutSession(session) {
   const metaTier = session?.metadata?.tier || session?.metadata?.plan;
   if (metaTier && TIERS[metaTier] && metaTier !== "free") return metaTier;
   const cents = Number(session?.amount_total);
   if (Number.isFinite(cents) && AMOUNT_TIER_CENTS[cents]) {
     return AMOUNT_TIER_CENTS[cents];
-  }
-  // line_items not expanded on basic session; fall back starter if paid
-  if (session?.payment_status === "paid" || session?.status === "complete") {
-    return "starter";
   }
   return null;
 }
@@ -289,8 +289,26 @@ function readRawBody(req) {
 }
 
 /**
+ * Book cashflow for a fulfilled Stripe session. Throws on ledger failure.
+ * Note always includes session_id for ops audit.
+ */
+function bookCheckoutCashflow({ sessionId, tier, keyId, priceMo }) {
+  recordCashflow("R01", {
+    delta_mrr: priceMo,
+    delta_cash: priceMo,
+    note: `stripe session_id=${sessionId} tier=${tier} key_id=${keyId}`,
+  });
+}
+
+/**
  * Fulfill checkout.session.completed: mint tier key, map session, book cashflow.
  * Idempotent on session_id. Never logs full API key — only id/prefix.
+ *
+ * Cashflow durability:
+ * - Mint + store session with cashflow_recorded=false first.
+ * - If recordCashflow fails, return status cashflow_pending (webhook → 500)
+ *   so Stripe retries; already_fulfilled path retries cashflow.
+ * - Never ack success permanently without cashflow_recorded=true.
  */
 function fulfillCheckoutSession(session) {
   const sessionId = session?.id;
@@ -298,18 +316,53 @@ function fulfillCheckoutSession(session) {
 
   const existing = getIssuedSession(sessionId);
   if (existing?.fulfilled) {
+    if (!existing.cashflow_recorded) {
+      const priceMo =
+        existing.price_mo ?? TIERS[existing.tier]?.price_mo ?? 0;
+      try {
+        bookCheckoutCashflow({
+          sessionId,
+          tier: existing.tier,
+          keyId: existing.key_id,
+          priceMo,
+        });
+        patchIssuedSession(sessionId, { cashflow_recorded: true });
+      } catch (e) {
+        console.error(
+          JSON.stringify({
+            event: "cashflow_record_failed",
+            session_id: sessionId,
+            key_id: existing.key_id,
+            retry: true,
+            error: String(e?.message || e),
+          })
+        );
+        return {
+          status: "cashflow_pending",
+          session_id: sessionId,
+          key_id: existing.key_id,
+          tier: existing.tier,
+          prefix: existing.prefix,
+          error: String(e?.message || e),
+        };
+      }
+    }
     return {
       status: "already_fulfilled",
       session_id: sessionId,
       key_id: existing.key_id,
       tier: existing.tier,
       prefix: existing.prefix,
+      cashflow_recorded: true,
     };
   }
 
   const tier = tierFromCheckoutSession(session);
   if (!tier || !TIERS[tier] || tier === "free") {
-    throw new Error(`unable to resolve paid tier for session ${sessionId}`);
+    throw new Error(
+      `unable to resolve paid tier for session ${sessionId}` +
+        ` (metadata.tier/plan or amount_total must be 2900/14900/99900 cents)`
+    );
   }
   const email =
     session.customer_details?.email ||
@@ -341,10 +394,11 @@ function fulfillCheckoutSession(session) {
   });
 
   try {
-    recordCashflow("R01", {
-      delta_mrr: priceMo,
-      delta_cash: priceMo,
-      note: `stripe session ${sessionId} tier=${tier} key_id=${minted.meta.id}`,
+    bookCheckoutCashflow({
+      sessionId,
+      tier,
+      keyId: minted.meta.id,
+      priceMo,
     });
     patchIssuedSession(sessionId, { cashflow_recorded: true });
   } catch (e) {
@@ -356,6 +410,16 @@ function fulfillCheckoutSession(session) {
         error: String(e?.message || e),
       })
     );
+    // Key is minted and redeemable; force Stripe retry until cashflow sticks.
+    return {
+      status: "cashflow_pending",
+      session_id: sessionId,
+      key_id: minted.meta.id,
+      tier,
+      prefix: minted.meta.prefix,
+      price_mo: priceMo,
+      error: String(e?.message || e),
+    };
   }
 
   console.log(
@@ -367,6 +431,7 @@ function fulfillCheckoutSession(session) {
       tier,
       price_mo: priceMo,
       has_email: Boolean(email),
+      cashflow_recorded: true,
     })
   );
 
@@ -377,6 +442,7 @@ function fulfillCheckoutSession(session) {
     tier,
     prefix: minted.meta.prefix,
     price_mo: priceMo,
+    cashflow_recorded: true,
   };
 }
 
@@ -431,6 +497,13 @@ async function handleStripeWebhook(req, res) {
 
   try {
     const result = fulfillCheckoutSession(session);
+    // cashflow_pending → 500 so Stripe retries until ledger write succeeds
+    if (result.status === "cashflow_pending") {
+      return json(res, 500, {
+        received: true,
+        ...result,
+      });
+    }
     return json(res, 200, {
       received: true,
       ...result,
