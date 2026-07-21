@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "host": "diamondnode",
+  "updated_at": "2026-07-10T23:20:00Z",
+  "stream": "R10",
+  "assigned_agent": "yennefer",
+  "vercel_teams": [
+    {
+      "name": "Genesis Conductor",
+      "slug": "igors-projects-2dc0c445",
+      "id": "team_6rZHKfzSFyuOCZVa6EQQGSjo"
+    },
+    {
+      "name": "Instinct",
+      "slug": "instinct-c38ff2c4",
+      "id": "team_5piZ5dwpvq275dgTrPOcv5B7"
+    }
+  ],
+  "vercel_projects": [
+    {
+      "id": "prj_EX5KsGgPHZMvLxsvv8DlX0HOuM9L",
+      "name": "genesis-conductor-site",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "repo": "Genesis-Conductor-Engine/genesis-conductor-site",
+      "public_url": "https://genesisconductor.io",
+      "priority": "p0",
+      "streams": ["R01", "R03", "R09", "R10"],
+      "cicd": ["vercel-git", "cloudflare-workers-gha"]
+    },
+    {
+      "id": "prj_7n5iTlGcZ20UX638O6NLPdxjNZrv",
+      "name": "yennefer-observatory",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "repo": "Genesis-Conductor-Engine/yennefer-cortex",
+      "priority": "p1",
+      "streams": ["R02", "R11"],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_51wo6ybqURhjVPS2VaZg7rCMLLfr",
+      "name": "instinctv2-1",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "repo": "igor-holt/Instinctv2.1",
+      "priority": "p1",
+      "streams": ["R08"],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_OE6DpEsywqTo1wJdADNH3MOvZSJG",
+      "name": "platforms-starter-kit",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "repo": "Genesis-Conductor-Engine/platforms-starter-kit",
+      "priority": "p2",
+      "streams": ["R13"],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_RqUQsXqZxEeSn1YCTaZttrglxSQa",
+      "name": "lidlift-live",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "repo": "igor-holt/lidlift-mcp",
+      "priority": "p1",
+      "streams": ["R03"],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_SxY2if6FLKDtLrdHMpWJYve7EGkh",
+      "name": "slack-agent-template",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "repo": "Genesis-Conductor-Engine/slack-agent-template",
+      "priority": "p3",
+      "streams": ["R09"],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_SBEhG761Y8S53HHSobarY0ZFlhSb",
+      "name": "web",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "priority": "p2",
+      "streams": ["R01"],
+      "cicd": ["vercel-cli"]
+    },
+    {
+      "id": "prj_A2VV1NOdcCWJnrQcGKKF8yhH6TUg",
+      "name": "project-uav0u",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "priority": "p3",
+      "streams": [],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_KoisvsDVA9o8cat6oK9ON4nNFsHE",
+      "name": "v0-vercel-style-black-friday-map",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "priority": "p3",
+      "streams": [],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_Ao2LbkjlWqKSkDHFEkesNRSqXjiq",
+      "name": "genesis-conductor",
+      "teamId": "team_5piZ5dwpvq275dgTrPOcv5B7",
+      "repo": "Genesis-Conductor-Engine/Genesis-Conductor",
+      "priority": "p1",
+      "streams": ["R03", "R11"],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "prj_Tr8jMQ0vy8mpQYKBLE9IQHWLlphX",
+      "name": "pet-app",
+      "teamId": "team_5piZ5dwpvq275dgTrPOcv5B7",
+      "priority": "p3",
+      "streams": [],
+      "cicd": ["vercel-git"]
+    },
+    {
+      "id": "pending-gc-forge-app",
+      "name": "gc-forge-app",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "rootDirectory": "apps/app",
+      "repo_path": "/root/genesis-conductor-forge",
+      "priority": "p1",
+      "streams": ["R01", "R03"],
+      "cicd": ["vercel-prebuilt-gha"],
+      "note": "next-forge monorepo at /root/genesis-conductor-forge"
+    },
+    {
+      "id": "pending-gc-forge-web",
+      "name": "gc-forge-web",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "rootDirectory": "apps/web",
+      "repo_path": "/root/genesis-conductor-forge",
+      "priority": "p1",
+      "streams": ["R01", "R10"],
+      "cicd": ["vercel-prebuilt-gha"],
+      "note": "next-forge monorepo at /root/genesis-conductor-forge"
+    },
+    {
+      "id": "pending-gc-forge-api",
+      "name": "gc-forge-api",
+      "teamId": "team_6rZHKfzSFyuOCZVa6EQQGSjo",
+      "rootDirectory": "apps/api",
+      "repo_path": "/root/genesis-conductor-forge",
+      "priority": "p1",
+      "streams": ["R03", "R10"],
+      "cicd": ["vercel-prebuilt-gha"],
+      "note": "next-forge monorepo at /root/genesis-conductor-forge"
+    }
+  ],
+  "cloudflare_workers": [
+    { "name": "gc-mcp", "path": "/home/diamondnode/gc-workers/gc-mcp", "priority": "p0", "streams": ["R03"] },
+    { "name": "gc-mcp-beta", "path": "/home/diamondnode/gc-workers/gc-mcp-beta", "priority": "p1", "streams": ["R03"] },
+    { "name": "gc-payment-engine", "path": "/home/diamondnode/gc-workers/gc-payment-engine", "priority": "p0", "streams": ["R05", "R07"] },
+    { "name": "x402-paid-service", "path": "/home/diamondnode/gc-workers/x402-paid-service", "priority": "p0", "streams": ["R05", "R07"] },
+    { "name": "gc-fleet-registry", "path": "/home/diamondnode/gc-workers/gc-fleet-registry", "priority": "p1", "streams": ["R09"] },
+    { "name": "gc-security-guardian", "path": "/home/diamondnode/gc-workers/gc-security-guardian", "priority": "p1", "streams": ["R04"] },
+    { "name": "gc-rag-engine", "path": "/home/diamondnode/gc-workers/gc-rag-engine", "priority": "p1", "streams": ["R01"] },
+    { "name": "gc-claims-adjudication", "path": "/home/diamondnode/gc-workers/gc-claims-adjudication", "priority": "p2", "streams": ["R05"] },
+    { "name": "gc-arena-controller", "path": "/home/diamondnode/gc-workers/gc-arena-controller", "priority": "p2", "streams": ["R08"] },
+    { "name": "gc-figma-bridge", "path": "/home/diamondnode/gc-workers/gc-figma-bridge", "priority": "p2", "streams": [] },
+    { "name": "gc-gemini-cli", "path": "/home/diamondnode/gc-workers/gc-gemini-cli", "priority": "p2", "streams": [] },
+    { "name": "xai-mcp", "path": "/home/diamondnode/gc-workers/xai-mcp", "priority": "p1", "streams": ["R01"] },
+    { "name": "diamondnodeqflop", "path": "/home/diamondnode/gc-workers/diamondnode-integration", "priority": "p1", "streams": ["R02"] },
+    { "name": "dn-tenant-provisioner", "path": "/home/diamondnode/gc-workers/dn-tenant-provisioner", "priority": "p1", "streams": ["R13"] },
+    { "name": "gc-diamond-node", "path": "/home/diamondnode/diamond-node", "priority": "p0", "streams": ["R02", "R10"] },
+    { "name": "yennefer", "path": "/home/diamondnode/Yennefer", "priority": "p1", "streams": ["R11"] },
+    { "name": "yennefer-quest", "path": "/home/diamondnode/yennefer-quest-deploy", "priority": "p2", "streams": ["R11"] },
+    { "name": "agent-arena", "path": "/home/diamondnode/arena-yennefer-quest-deploy", "priority": "p2", "streams": ["R08"] },
+    { "name": "diamond-vault-remote", "path": "/home/diamondnode/cf-remote-worker", "priority": "p0", "streams": ["R04"] },
+    { "name": "ntn-notion-worker", "path": "/home/diamondnode/notion-ai-worker", "priority": "p2", "streams": [] },
+    { "name": "gc-mcp-trtc-proxy", "path": "/home/diamondnode/gc-mcp-trtc-proxy", "priority": "p2", "streams": ["R03"] },
+    { "name": "erosgenesis", "path": "/home/diamondnode/erosgenesis-frontend", "priority": "p3", "streams": [] },
+    { "name": "ops-maintenance-agent", "path": "/root/ops-maintenance-agent", "priority": "p1", "streams": ["R10"], "status": "scaffolded" }
+  ],
+  "local_services": [
+    { "unit": "openclaw-gateway", "priority": "p0", "port": 18789 },
+    { "unit": "ollama", "priority": "p0", "port": 11434 },
+    { "unit": "nginx", "priority": "p0" },
+    { "unit": "redis-server", "priority": "p0", "port": 6379 },
+    { "unit": "qmem-llama-server", "priority": "p0", "streams": ["R01", "R02"] },
+    { "unit": "qmem-sync", "priority": "p0", "streams": ["R02"] },
+    { "unit": "genesis-ops-stream", "priority": "p0", "port": 8787 },
+    { "unit": "ops-maintenance-http", "priority": "p0", "port": 8791 },
+    { "unit": "cloudflared", "priority": "p0" },
+    { "unit": "docker", "priority": "p1" },
+    { "unit": "warp-svc", "priority": "p2" }
+  ],
+  "public_probes": [
+    { "name": "genesisconductor.io", "url": "https://genesisconductor.io", "expect_status": [200, 301, 302, 308] },
+    { "name": "www.genesisconductor.io", "url": "https://www.genesisconductor.io", "expect_status": [200, 301, 302, 308] },
+    { "name": "optimizationinversion.com", "url": "https://optimizationinversion.com", "expect_status": [200, 301, 302, 308, 502, 503] },
+    { "name": "ops-http-local", "url": "http://127.0.0.1:8791/health", "expect_status": [200] },
+    { "name": "ops-stream-local", "url": "http://127.0.0.1:8787/", "expect_status": [200, 404] },
+    { "name": "ollama-local", "url": "http://127.0.0.1:11434/api/tags", "expect_status": [200] }
+  ],
+  "github_orgs": ["Genesis-Conductor-Engine"],
+  "cicd_defaults": {
+    "vercel_cli": "48.x",
+    "node": "20",
+    "pattern": "pull → build --prod → deploy --prebuilt --prod",
+    "required_secrets": ["VERCEL_TOKEN", "VERCEL_ORG_ID", "VERCEL_PROJECT_ID"],
+    "notes": [
+      "Prefer vercel promote for validated previews over redeploy --prod",
+      "Pin vercel CLI in CI (do not use @latest)",
+      "Always pass --yes in CI",
+      "OIDC does not replace VERCEL_TOKEN for CLI deploys"
+    ]
+  }
+}

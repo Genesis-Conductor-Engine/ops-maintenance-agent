@@ -1,0 +1,9 @@
+{
+  "name": "ops-maintenance Kimi webhook",
+  "properties": {
+    "customWebhook": {
+      "url": "https://REPLACE_WITH_DIAMONDNODE/ops/kimi-update",
+      "body": "{\"source\":\"axiom\",\"action\":\"{{.Action}}\",\"monitorID\":\"{{.MonitorID}}\",\"message\":\"Axiom alert: {{.Action}} for monitor {{.MonitorID}}\"}"
+    }
+  }
+}

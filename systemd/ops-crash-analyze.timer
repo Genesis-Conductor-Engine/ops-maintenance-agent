@@ -1,0 +1,13 @@
+[Unit]
+Description=Schedule ops crash analysis every 30 minutes
+Requires=ops-crash-analyze.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+AccuracySec=1min
+Persistent=true
+Unit=ops-crash-analyze.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,17 @@
+name = "ops-maintenance-agent"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[durable_objects]
+bindings = [
+  { name = "MaintenanceAgent", class_name = "MaintenanceAgent" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MaintenanceAgent"]
+
+[vars]
+DIAMONDNODE_OPS_URL = "https://dn.genesisconductor.io"
+# OPS_TOKEN — set via: wrangler secret put OPS_TOKEN

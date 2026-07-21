@@ -1,0 +1,14 @@
+[Unit]
+Description=Ops crash/journal analysis snapshot
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/ops-maintenance-agent
+Environment=HOME=/root
+Environment=PATH=/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/crash-analyze.mjs
+
+[Install]
+WantedBy=multi-user.target

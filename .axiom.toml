@@ -1,0 +1,15 @@
+# Diamondnode Axiom config — fill via vault:
+#   echo -n 'xaat-...' | vault-set AXIOM_TOKEN
+#   echo -n 'your-org-id' | vault-set AXIOM_ORG_ID
+#   vault-apply-axiom
+#
+# Or open vault intake: python3 /root/.vault/bin/vault-intake-server.py
+# then store AXIOM_TOKEN and AXIOM_ORG_ID
+#
+# OAuth alternative (needs org id):
+#   axiom auth login --alias=prod --org-id=YOUR_ORG -f
+
+[deployments.prod]
+url = "https://api.axiom.co"
+token = "REPLACE_WITH_VAULT_AXIOM_TOKEN"
+org_id = "REPLACE_WITH_VAULT_AXIOM_ORG_ID"

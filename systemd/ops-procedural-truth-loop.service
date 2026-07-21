@@ -1,0 +1,12 @@
+[Unit]
+Description=Procedural truth verifier loop (q-mem + Ollama double loopback)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/ops-maintenance-agent
+Environment=PTV_SOURCE=ops-loop
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/procedural-truth.mjs
+StandardOutput=journal
+StandardError=journal

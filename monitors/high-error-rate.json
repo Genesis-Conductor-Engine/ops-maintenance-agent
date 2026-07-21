@@ -1,0 +1,15 @@
+{
+  "name": "ops-maintenance high error rate",
+  "type": "Threshold",
+  "description": "Fires when error-level events exceed threshold in the ops dataset (requires Axiom auth).",
+  "aplQuery": "['ops-maintenance'] | where ['level'] == 'error' or status >= 500 | summarize count() by bin(_time, 1m) | summarize total=sum(count_)",
+  "operator": "Above",
+  "threshold": 10,
+  "rangeMinutes": 5,
+  "intervalMinutes": 5,
+  "notifierIds": [],
+  "triggerAfterNPositiveResults": 2,
+  "triggerFromNRuns": 3,
+  "disabled": false,
+  "resolvable": true
+}

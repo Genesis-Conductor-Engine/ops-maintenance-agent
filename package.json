@@ -1,0 +1,31 @@
+{
+  "name": "ops-maintenance-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Diamondnode ops maintenance agent: verification, PR babysit, Sentry/Axiom hooks, Kimi updates, Workflow schedule",
+  "scripts": {
+    "verify": "node scripts/verify.mjs",
+    "pr-babysit": "node scripts/pr-babysit.mjs",
+    "kimi-update": "node scripts/kimi-update.mjs",
+    "deployments": "node scripts/deployments-audit.mjs",
+    "cycle": "node scripts/maintenance-cycle.mjs",
+    "agent:dev": "wrangler dev",
+    "agent:deploy": "wrangler deploy",
+    "workflow:typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "echo 'Scaffold only — deploy via wrangler / vercel as configured'"
+  },
+  "dependencies": {
+    "agents": "^0.0.95",
+    "workflow": "^4.0.1-beta.26",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250317.0",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ops-maintenance service down event",
+  "type": "MatchEvent",
+  "description": "MatchEvent when verification reports a core service inactive.",
+  "aplQuery": "['ops-maintenance'] | where event == 'service_inactive' or message contains 'inactive'",
+  "rangeMinutes": 5,
+  "intervalMinutes": 5,
+  "notifierIds": [],
+  "disabled": false
+}

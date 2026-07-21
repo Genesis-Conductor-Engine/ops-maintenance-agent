@@ -1,0 +1,13 @@
+{
+  "name": "diamondnode-thirdweb-arbitration",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "thirdweb SDK scaffold for agentic multi-chain arbitration (Base/OP/Polygon)",
+  "scripts": {
+    "probe": "node probe.mjs"
+  },
+  "dependencies": {
+    "thirdweb": "^5.105.0"
+  }
+}

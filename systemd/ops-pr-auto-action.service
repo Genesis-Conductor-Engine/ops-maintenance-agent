@@ -1,0 +1,22 @@
+[Unit]
+Description=PR auto-actioner (update-branch + CI rerun for actionable PRs)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/ops-maintenance-agent
+Environment=HOME=/root
+Environment=PATH=/root/.vault/bin:/root/.fly/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PR_AUTO_MAX=32
+EnvironmentFile=-/root/.openclaw/.env
+EnvironmentFile=-/root/.vault/env/agent.env
+# Ensure gh token available
+ExecStartPre=-/bin/bash -c 'test -f /root/.vault/bin/vault-apply-gh && /root/.vault/bin/vault-apply-gh >/dev/null 2>&1 || true'
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/pr-auto-actioner.mjs --max 32
+Nice=10
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target

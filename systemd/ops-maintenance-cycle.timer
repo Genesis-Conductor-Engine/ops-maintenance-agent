@@ -1,0 +1,13 @@
+[Unit]
+Description=Schedule ops maintenance cycle every 15 minutes
+Requires=ops-maintenance-cycle.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+AccuracySec=1min
+Persistent=true
+Unit=ops-maintenance-cycle.service
+
+[Install]
+WantedBy=timers.target

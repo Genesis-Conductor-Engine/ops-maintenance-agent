@@ -1,0 +1,17 @@
+[Unit]
+Description=Ops maintenance verification + PR inventory + Kimi update
+After=network-online.target openclaw-gateway.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/ops-maintenance-agent
+Environment=HOME=/root
+Environment=PATH=/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/root/.openclaw/.env
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/maintenance-cycle.mjs
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

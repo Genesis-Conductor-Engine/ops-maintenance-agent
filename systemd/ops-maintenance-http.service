@@ -1,0 +1,19 @@
+[Unit]
+Description=Ops maintenance HTTP control plane (verify/pr/kimi)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/ops-maintenance-agent
+Environment=HOME=/root
+Environment=PATH=/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=OPS_HTTP_HOST=127.0.0.1
+Environment=OPS_HTTP_PORT=8791
+EnvironmentFile=-/root/.openclaw/.env
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/ops-http-server.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

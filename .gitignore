@@ -1,0 +1,6 @@
+node_modules/
+reports/*.json
+!reports/.gitkeep
+.env
+*.log
+chains/thirdweb/node_modules/

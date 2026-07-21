@@ -1,0 +1,21 @@
+[Unit]
+Description=Ops post-boot reconfig, crash analysis, and heal
+After=network-online.target
+Wants=network-online.target
+# Start after basic multi-user services may be up
+After=nginx.service redis-server.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/ops-maintenance-agent
+Environment=HOME=/root
+Environment=PATH=/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/root/.openclaw/.env
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/post-boot-reconfig.mjs
+TimeoutStartSec=180
+RemainAfterExit=yes
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

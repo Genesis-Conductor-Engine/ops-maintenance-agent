@@ -1,0 +1,13 @@
+[Unit]
+Description=Schedule PR auto-action every 20 minutes
+Requires=ops-pr-auto-action.service
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=20min
+AccuracySec=1min
+Persistent=true
+Unit=ops-pr-auto-action.service
+
+[Install]
+WantedBy=timers.target
