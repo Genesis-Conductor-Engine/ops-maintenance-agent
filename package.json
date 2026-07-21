@@ -10,6 +10,7 @@
     "kimi-update": "node scripts/kimi-update.mjs",
     "deployments": "node scripts/deployments-audit.mjs",
     "cycle": "node scripts/maintenance-cycle.mjs",
+    "test:inference": "node scripts/test-inference-meter.mjs",
     "agent:dev": "wrangler dev",
     "agent:deploy": "wrangler deploy",
     "workflow:typecheck": "tsc -p tsconfig.json --noEmit",
