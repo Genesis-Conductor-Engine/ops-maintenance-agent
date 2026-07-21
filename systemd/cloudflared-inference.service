@@ -1,0 +1,26 @@
+[Unit]
+Description=Cloudflare Tunnel for Diamondnode inference meter (R01 :8792)
+Documentation=file:///root/ops-maintenance-agent/config/cloudflared-inference.yml
+After=network-online.target ops-inference-meter.service
+Wants=network-online.target
+Requires=ops-inference-meter.service
+
+[Service]
+Type=simple
+# Named tunnel (preferred). Credentials under /home/diamondnode/.cloudflared/ — never log or commit them.
+# Fallback (manual): cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8792
+# then parse trycloudflare.com URL into reports/inference-public-url.txt + config/inference-public.json
+ExecStartPre=/usr/bin/test -f /home/diamondnode/.cloudflared/af9cf2e4-0119-4f2a-ba66-19b8c8a23080.json
+ExecStartPre=/usr/bin/test -f /root/ops-maintenance-agent/config/cloudflared-inference.yml
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /root/ops-maintenance-agent/config/cloudflared-inference.yml tunnel run
+ExecStartPost=/bin/bash /root/ops-maintenance-agent/scripts/write-inference-public-url.sh
+Restart=always
+RestartSec=10
+# Do not put tunnel tokens in Environment= or unit files.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cloudflared-inference
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

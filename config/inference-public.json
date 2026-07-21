@@ -1,0 +1,16 @@
+{
+  "service": "diamondnode-inference-meter",
+  "stream": "R01",
+  "public_base_url": "https://inference.yennefer.quest",
+  "preferred_hostname": "inference.genesisconductor.io",
+  "active_hostname": "inference.yennefer.quest",
+  "mode": "named-tunnel",
+  "local_origin": "http://127.0.0.1:8792",
+  "endpoints": {
+    "health": "https://inference.yennefer.quest/health",
+    "pricing": "https://inference.yennefer.quest/pricing",
+    "chat_completions": "https://inference.yennefer.quest/v1/chat/completions"
+  },
+  "notes": "Named tunnel DNS zone follows origin cert (yennefer.quest). Point inference.genesisconductor.io CNAME to the same tunnel when CF zone access allows. Never store tunnel tokens in this file.",
+  "updated_at": "2026-07-21T02:41:22Z"
+}

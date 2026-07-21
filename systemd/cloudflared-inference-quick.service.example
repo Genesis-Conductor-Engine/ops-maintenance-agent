@@ -1,0 +1,29 @@
+# OPTIONAL fallback when named-tunnel credentials / DNS are unavailable.
+# Do not enable alongside cloudflared-inference.service.
+#
+#   cp systemd/cloudflared-inference-quick.service.example /etc/systemd/system/cloudflared-inference.service
+#   systemctl daemon-reload && systemctl enable --now cloudflared-inference.service
+#   # After start, capture URL:
+#   INFERENCE_USE_QUICK_TUNNEL=1 bash scripts/write-inference-public-url.sh
+#
+[Unit]
+Description=Cloudflare quick tunnel for inference meter (trycloudflare fallback)
+After=network-online.target ops-inference-meter.service
+Wants=network-online.target
+Requires=ops-inference-meter.service
+
+[Service]
+Type=simple
+Environment=INFERENCE_USE_QUICK_TUNNEL=1
+Environment=INFERENCE_QUICK_TUNNEL_LOG=/var/log/cloudflared-inference-quick.log
+ExecStart=/usr/bin/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8792
+ExecStartPost=/bin/sleep 3
+ExecStartPost=/bin/bash /root/ops-maintenance-agent/scripts/write-inference-public-url.sh
+Restart=always
+RestartSec=15
+StandardOutput=append:/var/log/cloudflared-inference-quick.log
+StandardError=append:/var/log/cloudflared-inference-quick.log
+# No tokens in this unit — quick tunnels do not use account tokens.
+
+[Install]
+WantedBy=multi-user.target

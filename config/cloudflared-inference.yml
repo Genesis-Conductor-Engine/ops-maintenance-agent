@@ -1,0 +1,20 @@
+# Named Cloudflare Tunnel for R01 inference meter (public).
+# Credentials live outside the repo — never commit *.json under ~/.cloudflared/
+# Tunnel: inference-meter (af9cf2e4-0119-4f2a-ba66-19b8c8a23080)
+# Preferred product hostname inference.genesisconductor.io requires CF zone
+# access for genesisconductor.io; cert/account currently routes under yennefer.quest.
+
+tunnel: af9cf2e4-0119-4f2a-ba66-19b8c8a23080
+credentials-file: /home/diamondnode/.cloudflared/af9cf2e4-0119-4f2a-ba66-19b8c8a23080.json
+
+# Avoid logging request bodies / auth headers
+loglevel: info
+transport-loglevel: warn
+no-autoupdate: true
+
+ingress:
+  - hostname: inference.yennefer.quest
+    service: http://127.0.0.1:8792
+  - hostname: inference.genesisconductor.io.yennefer.quest
+    service: http://127.0.0.1:8792
+  - service: http_status:404

@@ -7,12 +7,34 @@
 
 | Stream | Product | Endpoint | Pricing |
 |--------|---------|----------|---------|
-| **R01** | Metered Sovereign LLM API | `http://127.0.0.1:8792` + nginx `/v1/` | starter **$29**/mo · pro **$149** · enterprise **$999** |
+| **R01** | Metered Sovereign LLM API | **https://inference.yennefer.quest** (+ local `:8792` / nginx `/v1/`) | starter **$29**/mo · pro **$149** · enterprise **$999** |
 | **R02** | q-mem GPU backend | `:8082` (proxied via meter) | bundled with R01 tiers |
 | **R07** | On-chain mesh | alloy probe Base/OP/Polygon/ETH | settlement ready |
 | **R11/R12** | Telemetry API (Stripe) | https://api.genesisconductor.io | pro **$49** · enterprise **$499** |
 
-### Inference meter (R01)
+### Inference meter (R01) — public
+
+| Item | Value |
+|------|--------|
+| Public base URL | `https://inference.yennefer.quest` |
+| Preferred future hostname | `inference.genesisconductor.io` (needs CF zone CNAME → same tunnel) |
+| Config | `config/inference-public.json` · `reports/inference-public-url.txt` |
+| Tunnel unit | `cloudflared-inference.service` (named tunnel `inference-meter`) |
+| Tunnel config | `config/cloudflared-inference.yml` (credentials **outside** repo) |
+| Local origin | `http://127.0.0.1:8792` (`ops-inference-meter.service`) |
+| Quick-tunnel fallback | `systemd/cloudflared-inference-quick.service.example` |
+
+Public probes (no secrets):
+
+```bash
+curl -sS https://inference.yennefer.quest/health
+curl -sS https://inference.yennefer.quest/pricing
+# expect 401:
+curl -sS -o /dev/null -w '%{http_code}\n' -X POST https://inference.yennefer.quest/v1/chat/completions \
+  -H 'content-type: application/json' -d '{"model":"phi-2","messages":[{"role":"user","content":"hi"}]}'
+```
+
+Local / nginx:
 
 ```bash
 # Pricing
@@ -34,7 +56,7 @@ curl -s -X POST http://127.0.0.1:8792/admin/keys \
 curl -s http://127.0.0.1:8792/admin/revenue -H "Authorization: Bearer $ADMIN"
 ```
 
-Service: `ops-inference-meter.service` · keys in `/root/.vault/secrets/INFERENCE_*`
+Service: `ops-inference-meter.service` · public edge: `cloudflared-inference.service` · keys in `/root/.vault/secrets/INFERENCE_*`
 
 **GPU policy**: `yennefer-breath-daemon` disabled so GTX 1650 VRAM serves paid inference. See `reports/gpu-priority-r01.json`.
 
@@ -45,7 +67,7 @@ Service: `ops-inference-meter.service` · keys in `/root/.vault/secrets/INFERENC
 | Redis | cashflow ledger + inference usage + keys |
 | genesis-ops-stream **:8787** | live ops SSE (already running) |
 | ops-maintenance-http **:8791** | verify / cashflow / cycle API |
-| ops-inference-meter **:8792** | metered OpenAI-compatible API |
+| ops-inference-meter **:8792** | metered OpenAI-compatible API (public via `cloudflared-inference` → https://inference.yennefer.quest) |
 | Kimi notify-owner | mobile cycle + cashflow alerts |
 | `reports/*.json` | durable local evidence |
 | Alloy chain mesh | `scripts/chain-mesh-status.mjs` → `reports/chain-mesh-latest.json` |
