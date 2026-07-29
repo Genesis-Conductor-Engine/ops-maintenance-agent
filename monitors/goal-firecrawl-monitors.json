@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "north_star": {
+    "streams": 13,
+    "mrr_per_stream_usd": 70000,
+    "combined_mrr_floor_usd": 910000
+  },
+  "note": "Install with: node scripts/bootstrap-firecrawl-monitors.mjs (requires FIRECRAWL_API_KEY)",
+  "monitors": [
+    {
+      "name": "R01-LLM-inference-market",
+      "scheduleText": "every 6 hours",
+      "goal": "Alert when new LLM API pricing, hosting offers, or competitor inference pricing tiers change in ways that affect Sovereign LLM Inference API positioning (R01). Ignore pure marketing fluff unless it changes price, limits, or SLAs.",
+      "queries": [
+        "LLM API pricing hosting",
+        "GPU inference API pricing",
+        "serverless LLM pricing"
+      ],
+      "searchWindow": "24h",
+      "maxResults": 10,
+      "stream": "R01"
+    },
+    {
+      "name": "Partner-DRP-funding-pipelines",
+      "scheduleText": "every 6 hours",
+      "goal": "Alert when partner funding programs, Partner Services Funds, DRP registrations, cloud credits, or startup partner program terms change. Focus on eligibility, funding amounts, and registration deadlines.",
+      "queries": [
+        "Partner Services Fund AI",
+        "cloud partner funding program AI startups",
+        "DRP registration partner program"
+      ],
+      "searchWindow": "24h",
+      "maxResults": 10,
+      "stream": "partner"
+    },
+    {
+      "name": "Genesis-AI-infra-signals",
+      "scheduleText": "every 6 hours",
+      "goal": "Alert when material changes appear for multi-agent frameworks, durable workflows, thermodynamic or MLOps research, Cloudflare Agents SDK, or Vercel Workflow releases that affect diamondnode automation.",
+      "queries": [
+        "Cloudflare Agents SDK release",
+        "Vercel Workflow DevKit",
+        "multi-agent durable workflow"
+      ],
+      "searchWindow": "24h",
+      "maxResults": 10,
+      "stream": "infra"
+    }
+  ]
+}

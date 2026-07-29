@@ -1,0 +1,214 @@
+{
+  "name": "Diamondnode North Star MRR",
+  "description": "13 streams × $70k MRR, procedural truth crystal, R01 inference cash path",
+  "audience": "Lead AI Systems Architect / founder",
+  "decisions": [
+    "which stream to actuate next",
+    "whether cash path is live"
+  ],
+  "datasets": ["ops-maintenance", "ops-revenue"],
+  "refresh": "team",
+  "refreshTime": 300,
+  "timeWindow": "7d",
+  "schema_status": "unknown",
+  "schema_status_reason": "No AXIOM_TOKEN/ORG in vault; getschema never run; scorecard/cycle events not ingested to Axiom. Local truth remains reports/*-latest.json.",
+  "deploy_mode": "deferred_notes",
+  "assembled_dashboard": "dashboard-spec/north-star-mrr.dashboard.json",
+  "intended_event_fields": {
+    "goal_scorecard": [
+      "event",
+      "total_mrr_usd",
+      "streams_at_floor",
+      "streams_total",
+      "pct_to_combined_floor",
+      "stream_R01_mrr",
+      "stream_R02_mrr",
+      "stream_R03_mrr",
+      "stream_R04_mrr",
+      "stream_R05_mrr",
+      "stream_R06_mrr",
+      "stream_R07_mrr",
+      "stream_R08_mrr",
+      "stream_R09_mrr",
+      "stream_R10_mrr",
+      "stream_R11_mrr",
+      "stream_R12_mrr",
+      "stream_R13_mrr",
+      "crystal_value",
+      "ptv_ok",
+      "r01_estimated_mrr",
+      "go_live_blockers_count",
+      "verification_ok",
+      "cycle_ok"
+    ],
+    "r01_go_live": [
+      "event",
+      "stream",
+      "estimated_mrr",
+      "go_live_blockers",
+      "go_live_blockers_count",
+      "public_url",
+      "stripe_webhook_secret"
+    ],
+    "ops_cycle": [
+      "event",
+      "verification_ok",
+      "cycle_ok",
+      "core_down",
+      "duration_ms"
+    ]
+  },
+  "panels": [
+    {
+      "id": "intro",
+      "type": "Note",
+      "name": "North Star",
+      "status": "shipped",
+      "question": "What are the goals and decisions?"
+    },
+    {
+      "id": "total-mrr",
+      "type": "Statistic",
+      "name": "Total MRR (USD)",
+      "status": "deferred",
+      "unit": "USD",
+      "question": "Are we on the cash path?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "streams-at-floor",
+      "type": "Statistic",
+      "name": "Streams at floor (/13)",
+      "status": "deferred",
+      "unit": "count",
+      "question": "How many streams hit $70k?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "r01-estimated-mrr",
+      "type": "Statistic",
+      "name": "R01 estimated MRR",
+      "status": "deferred",
+      "unit": "USD",
+      "question": "Is sovereign inference monetizing?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "ptv-crystal",
+      "type": "Statistic",
+      "name": "PTV crystal score",
+      "status": "deferred",
+      "unit": "1",
+      "question": "Is procedural truth PASS?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "go-live-blockers",
+      "type": "Statistic",
+      "name": "R01 go-live blockers count",
+      "status": "deferred",
+      "unit": "count",
+      "question": "Is cash path live (0 preferred)?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "ops-cycle-health",
+      "type": "Statistic",
+      "name": "Ops cycle health",
+      "status": "deferred",
+      "unit": "%",
+      "question": "Is the actuation loop reliable?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "mrr-trend",
+      "type": "TimeSeries",
+      "name": "Total MRR trend",
+      "status": "deferred",
+      "question": "Is MRR climbing toward $910k?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "stream-mrr-table",
+      "type": "Table",
+      "name": "MRR by stream (R01–R13)",
+      "status": "deferred",
+      "question": "Which stream to actuate next?",
+      "blocker": "schema unknown / no ingest"
+    },
+    {
+      "id": "blockers-evidence",
+      "type": "Table",
+      "name": "Go-live blocker evidence",
+      "status": "deferred",
+      "question": "What exactly blocks cash path?",
+      "blocker": "schema unknown / no ingest"
+    }
+  ],
+  "intended_queries": {
+    "total-mrr": {
+      "type": "Statistic",
+      "unit": "USD",
+      "apl": "['ops-maintenance']\n| where event == \"goal_scorecard\" or isnotnull(total_mrr_usd)\n| top 1 by _time desc\n| project total_mrr_usd\n| summarize total_mrr_usd=any(total_mrr_usd)"
+    },
+    "streams-at-floor": {
+      "type": "Statistic",
+      "unit": "count",
+      "apl": "['ops-maintenance']\n| where event == \"goal_scorecard\" or isnotnull(streams_at_floor)\n| top 1 by _time desc\n| project streams_at_floor\n| summarize streams_at_floor=any(streams_at_floor)"
+    },
+    "r01-estimated-mrr": {
+      "type": "Statistic",
+      "unit": "USD",
+      "apl": "['ops-maintenance']\n| where event == \"r01_go_live\" or event == \"goal_scorecard\" or isnotnull(r01_estimated_mrr) or (stream == \"R01\" and isnotnull(estimated_mrr))\n| extend r01_mrr = coalesce(r01_estimated_mrr, estimated_mrr, stream_R01_mrr)\n| top 1 by _time desc\n| summarize r01_estimated_mrr=any(r01_mrr)"
+    },
+    "ptv-crystal": {
+      "type": "Statistic",
+      "unit": "1",
+      "apl": "['ops-maintenance']\n| where isnotnull(crystal_value) or event == \"goal_scorecard\" or event == \"procedural_truth\"\n| top 1 by _time desc\n| summarize crystal_value=any(crystal_value)"
+    },
+    "go-live-blockers": {
+      "type": "Statistic",
+      "unit": "count",
+      "apl": "['ops-maintenance']\n| where event == \"r01_go_live\" or isnotnull(go_live_blockers_count)\n| top 1 by _time desc\n| summarize blockers=any(go_live_blockers_count)"
+    },
+    "ops-cycle-health": {
+      "type": "Statistic",
+      "unit": "%",
+      "apl": "['ops-maintenance']\n| where event == \"ops_cycle\" or event == \"goal_scorecard\" or isnotnull(verification_ok)\n| summarize ok=countif(verification_ok == true or cycle_ok == true), n=count()\n| extend pct = iff(n > 0, (todouble(ok) / todouble(n)) * 100.0, 0.0)\n| project pct"
+    },
+    "mrr-trend": {
+      "type": "TimeSeries",
+      "unit": "USD",
+      "apl": "['ops-maintenance']\n| where isnotnull(total_mrr_usd)\n| summarize total_mrr_usd=max(total_mrr_usd) by bin_auto(_time)"
+    },
+    "stream-mrr-table": {
+      "type": "Table",
+      "apl": "['ops-maintenance']\n| where event == \"goal_scorecard\" or isnotnull(stream_R01_mrr)\n| top 1 by _time desc\n| project stream_R01_mrr, stream_R02_mrr, stream_R03_mrr, stream_R04_mrr, stream_R05_mrr, stream_R06_mrr, stream_R07_mrr, stream_R08_mrr, stream_R09_mrr, stream_R10_mrr, stream_R11_mrr, stream_R12_mrr, stream_R13_mrr, streams_at_floor, total_mrr_usd"
+    },
+    "blockers-evidence": {
+      "type": "Table",
+      "apl": "['ops-maintenance']\n| where event == \"r01_go_live\" or isnotnull(go_live_blockers)\n| project _time, stream, go_live_blockers_count, go_live_blockers, public_url, stripe_webhook_secret\n| sort by _time desc\n| take 50"
+    },
+    "ops-revenue-optional": {
+      "type": "TimeSeries",
+      "dataset": "ops-revenue",
+      "note": "Optional second dataset for cash ledger deltas",
+      "apl": "['ops-revenue']\n| where isnotnull(delta_mrr) or isnotnull(delta_cash)\n| summarize delta_mrr=sum(delta_mrr), delta_cash=sum(delta_cash) by bin_auto(_time), stream"
+    }
+  },
+  "defer_template": {
+    "type": "Note",
+    "text_pattern": "**Deferred — blocked by:** <reason>.\n\n**Original spec:** <quantity>.\n\n**To unblock:** <fix>."
+  },
+  "local_snapshot_2026-07-29": {
+    "total_mrr_usd": 1442,
+    "streams_at_floor": 0,
+    "r01_estimated_mrr": 1442,
+    "crystal_value": 0.92,
+    "go_live_blockers": [
+      "STRIPE_WEBHOOK_SECRET missing in vault",
+      "Stripe checkout Payment Links not set"
+    ],
+    "source": "reports/goal-scorecard-latest.json + reports/r01-go-live.json"
+  }
+}

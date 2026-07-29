@@ -168,6 +168,24 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    if (url.pathname === "/ops/goal-scorecard" && (req.method === "POST" || req.method === "GET")) {
+      const out = execFileSync("node", [join(ROOT, "scripts", "goal-scorecard.mjs")], {
+        encoding: "utf8",
+        cwd: ROOT,
+        env: process.env,
+        timeout: 90_000,
+      });
+      const latest = join(ROOT, "reports", "goal-scorecard-latest.json");
+      if (existsSync(latest)) {
+        return json(res, 200, JSON.parse(readFileSync(latest, "utf8")));
+      }
+      try {
+        return json(res, 200, JSON.parse(out));
+      } catch {
+        return json(res, 200, { raw: out });
+      }
+    }
+
     if (url.pathname === "/ops/deployments" && req.method === "GET") {
       const refresh = url.searchParams.get("refresh") === "1";
       const latest = join(ROOT, "reports", "deployments-latest.json");

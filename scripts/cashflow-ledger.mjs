@@ -175,7 +175,7 @@ export function loadLedger() {
 /**
  * Record cashflow motion for a stream.
  * @param {string} streamId R01..R13
- * @param {{ mrr_actual?: number, pipeline_usd?: number, cash_collected_mtd?: number, delta_mrr?: number, delta_cash?: number, note?: string }} patch
+ * @param {{ mrr_actual?: number, pipeline_usd?: number, cash_collected_mtd?: number, delta_mrr?: number, delta_cash?: number, note?: string, shopify_order_id?: string, meta?: object }} patch
  */
 export function recordCashflow(streamId, patch = {}) {
   const ledger = loadLedger();
@@ -186,9 +186,19 @@ export function recordCashflow(streamId, patch = {}) {
   if (patch.cash_collected_mtd != null) s.cash_collected_mtd = Number(patch.cash_collected_mtd);
   if (patch.delta_mrr) s.mrr_actual = Math.max(0, s.mrr_actual + Number(patch.delta_mrr));
   if (patch.delta_cash) s.cash_collected_mtd = Math.max(0, s.cash_collected_mtd + Number(patch.delta_cash));
+  let meta = patch.meta && typeof patch.meta === "object" ? patch.meta : null;
+  if (typeof patch.meta === "string") {
+    try {
+      meta = JSON.parse(patch.meta);
+    } catch {
+      meta = { raw: patch.meta };
+    }
+  }
   s.last_event = {
     at: new Date().toISOString(),
     note: patch.note || null,
+    shopify_order_id: patch.shopify_order_id || meta?.shopify_order_id || null,
+    meta: meta || null,
   };
   recompute(ledger);
   return persist(ledger);
@@ -227,6 +237,7 @@ if (isMain) {
   const [, , cmd, ...rest] = process.argv;
   if (cmd === "record" && rest[0]) {
     // record R01 --mrr 1000 --cash 500 --note "first invoice"
+    // record R07 --delta-cash 2.5 --shopify-order-id gid://... --meta '{"txHash":"0x..."}'
     const id = rest[0];
     const patch = {};
     for (let i = 1; i < rest.length; i++) {
@@ -236,6 +247,8 @@ if (isMain) {
       else if (rest[i] === "--delta-mrr") patch.delta_mrr = Number(rest[++i]);
       else if (rest[i] === "--delta-cash") patch.delta_cash = Number(rest[++i]);
       else if (rest[i] === "--note") patch.note = rest[++i];
+      else if (rest[i] === "--shopify-order-id") patch.shopify_order_id = rest[++i];
+      else if (rest[i] === "--meta") patch.meta = rest[++i];
     }
     const L = recordCashflow(id, patch);
     console.log(formatCashflowBrief(L));

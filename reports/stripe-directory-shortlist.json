@@ -1,0 +1,388 @@
+{
+  "title": "Stripe Directory shortlist \u2014 Kovach Enterprises / diamondnode R01 revenue activation",
+  "generated_at": "2026-07-29T05:29:19.236853+00:00",
+  "buyer": "Kovach Enterprises / diamondnode",
+  "goals": [
+    "Partner funding / cloud credits / Partner Services Funds for AI startups",
+    "Stripe billing / Payment Links / usage-based metering for LLM API SaaS",
+    "Optional MPP-supported services for agent-paid workflows"
+  ],
+  "queries_run": [
+    {
+      "query": "partner funding AI startup cloud credits",
+      "filters": {},
+      "result_count": 4,
+      "note": "Sparse; no true Partner Services Fund admins. GPU/LLM adjacents only."
+    },
+    {
+      "query": "partner services fund AWS Azure GCP startup",
+      "filters": {},
+      "result_count": 7,
+      "note": "Mostly cloud consultants/IT services, not PSF/credits programs."
+    },
+    {
+      "query": "usage-based metering LLM API SaaS",
+      "filters": {},
+      "result_count": 4,
+      "note": "Strong: Schematic, OpenMeter, Orb, Klaim."
+    },
+    {
+      "query": "Stripe billing Payment Links subscription SaaS",
+      "filters": {},
+      "result_count": 10,
+      "note": "Checkout/subscription tools; mixed quality."
+    },
+    {
+      "query": "AI API billing metering",
+      "filters": {},
+      "result_count": 10,
+      "note": "Strong metering + LLM gateway cluster."
+    },
+    {
+      "query": "agent payment API",
+      "filters": {
+        "mpp_supported": true
+      },
+      "result_count": 0,
+      "note": "Too narrow; empty."
+    },
+    {
+      "query": "API",
+      "filters": {
+        "mpp_supported": true,
+        "limit": 10
+      },
+      "result_count": 4,
+      "note": "Parallel, Browserbase, Zinc, You.com."
+    },
+    {
+      "query": "data",
+      "filters": {
+        "mpp_supported": true,
+        "limit": 10
+      },
+      "result_count": 3,
+      "note": "Browserbase, Parallel, You.com."
+    },
+    {
+      "query": "subscription billing SaaS metering",
+      "filters": {},
+      "result_count": 9,
+      "note": "Confirms billing cluster + PayWhirl/PriceWell."
+    },
+    {
+      "query": "feature flags entitlements packaging SaaS",
+      "filters": {},
+      "result_count": 1,
+      "note": "Schematic only."
+    },
+    {
+      "query": "startup accelerator cloud credits funding",
+      "filters": {},
+      "result_count": 5,
+      "note": "Weak incubator/consulting noise; no hyperscaler PSF."
+    },
+    {
+      "query": "payment links checkout subscription",
+      "filters": {},
+      "result_count": 10,
+      "note": "Checkout/payment-link adjacent vendors."
+    },
+    {
+      "query": "billing",
+      "filters": {
+        "stripe_projects_supported": true,
+        "limit": 10
+      },
+      "result_count": 10,
+      "note": "Projects providers including Schematic, Clerk, etc."
+    },
+    {
+      "query": "GPU cloud compute",
+      "filters": {},
+      "result_count": 10,
+      "note": "Runpod, DigitalOcean, io.net, CoreWeave-ish profiles."
+    }
+  ],
+  "queries_run_count": 14,
+  "raw_result_hits_sum": 87,
+  "shortlist_count": 10,
+  "shortlist_by_bucket": {
+    "direct": 5,
+    "adjacent": 4,
+    "needs-review": 1
+  },
+  "shortlist": [
+    {
+      "bucket": "direct",
+      "name": "OpenMeter",
+      "username": "openmeter",
+      "why_matched": "Usage metering and billing for B2B SaaS \u2014 direct fit for LLM API SaaS usage-based metering and Stripe-aligned revenue activation.",
+      "url": "https://stri.pe/sl/wq6CbW6b",
+      "profile_url": "https://stri.pe/sl/gzp2dHo3",
+      "query_used": "usage-based metering LLM API SaaS",
+      "also_surfaced_by": [
+        "AI API billing metering",
+        "subscription billing SaaS metering"
+      ],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false
+      },
+      "goal_tags": [
+        "billing_metering"
+      ]
+    },
+    {
+      "bucket": "direct",
+      "name": "Klaim",
+      "username": "klaim",
+      "why_matched": "Explicitly positioned as usage-based billing for AI startups \u2014 strongest wording match for diamondnode-style LLM API metering.",
+      "url": "https://stri.pe/sl/H8KwyyQV",
+      "profile_url": "https://stri.pe/sl/UEfThjLg",
+      "query_used": "AI API billing metering",
+      "also_surfaced_by": [
+        "usage-based metering LLM API SaaS",
+        "subscription billing SaaS metering"
+      ],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false
+      },
+      "goal_tags": [
+        "billing_metering"
+      ]
+    },
+    {
+      "bucket": "direct",
+      "name": "Schematic",
+      "username": "schematic",
+      "why_matched": "Feature packaging / entitlements lifecycle for SaaS; Stripe Projects provider (catalog/install). Useful next to metering for plan gates and packaging of LLM features.",
+      "url": "https://stri.pe/sl/DVFfp0Nk",
+      "profile_url": "https://stri.pe/sl/bjURFhRd",
+      "query_used": "usage-based metering LLM API SaaS",
+      "also_surfaced_by": [
+        "feature flags entitlements packaging SaaS",
+        "subscription billing SaaS metering",
+        "billing --stripe-projects-supported"
+      ],
+      "trust_signals": {
+        "stripe_projects": true,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false,
+        "projects_catalog_command": "stripe projects catalog schematic",
+        "projects_install_command": "stripe projects add schematic"
+      },
+      "goal_tags": [
+        "billing_metering"
+      ]
+    },
+    {
+      "bucket": "direct",
+      "name": "Parallel",
+      "username": "parallel_web_systems",
+      "why_matched": "MPP-supported agent web search/research APIs \u2014 purchasable via Machine Payment Protocol for agent-paid workflows. Also Stripe App + Projects provider.",
+      "url": "https://stri.pe/sl/xZ4GaIwy",
+      "profile_url": "https://stri.pe/sl/Y1Hj3k6P",
+      "query_used": "API --mpp-supported",
+      "also_surfaced_by": [
+        "data --mpp-supported"
+      ],
+      "trust_signals": {
+        "stripe_projects": true,
+        "mpp": true,
+        "link": false,
+        "stripe_app": true,
+        "mpp_slug": "parallel",
+        "mpp_urls": [
+          "https://mpp.dev/services#parallel",
+          "https://docs.parallel.ai/integrations/agentic-payments"
+        ],
+        "projects_catalog_command": "stripe projects catalog parallel_web_systems",
+        "projects_install_command": "stripe projects add parallel_web_systems"
+      },
+      "goal_tags": [
+        "mpp_agent_workflows"
+      ]
+    },
+    {
+      "bucket": "direct",
+      "name": "Browserbase",
+      "username": "browserbase",
+      "why_matched": "MPP-supported headless browser / fetch / search primitives for production agents \u2014 strong agent-paid workflow fit.",
+      "url": "https://stri.pe/sl/fKDaWG05",
+      "profile_url": "https://stri.pe/sl/zmQKIEiM",
+      "query_used": "API --mpp-supported",
+      "also_surfaced_by": [
+        "data --mpp-supported"
+      ],
+      "trust_signals": {
+        "stripe_projects": true,
+        "mpp": true,
+        "link": false,
+        "stripe_app": true,
+        "mpp_slug": "browserbase",
+        "mpp_urls": [
+          "https://mpp.dev/services#browserbase",
+          "https://mpp.browserbase.com/"
+        ],
+        "projects_catalog_command": "stripe projects catalog browserbase",
+        "projects_install_command": "stripe projects add browserbase"
+      },
+      "goal_tags": [
+        "mpp_agent_workflows"
+      ]
+    },
+    {
+      "bucket": "adjacent",
+      "name": "You.com",
+      "username": "youdotcom",
+      "why_matched": "MPP-supported real-time web search/extract/data APIs for AI apps \u2014 adjacent agent tooling rather than billing stack.",
+      "url": "https://stri.pe/sl/378wKYgO",
+      "profile_url": "https://stri.pe/sl/KNRk59fL",
+      "query_used": "API --mpp-supported",
+      "also_surfaced_by": [
+        "data --mpp-supported"
+      ],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": true,
+        "link": false,
+        "stripe_app": false,
+        "mpp_slug": null,
+        "mpp_urls": [
+          "https://you.com/docs/llms.txt",
+          "https://you.com/docs/api-reference/search/v1-search-post"
+        ]
+      },
+      "goal_tags": [
+        "mpp_agent_workflows"
+      ]
+    },
+    {
+      "bucket": "adjacent",
+      "name": "PayWhirl",
+      "username": "paywhirl",
+      "why_matched": "Recurring billing, subscriptions, payment plans \u2014 adjacent to Payment Links / subscription checkout for SaaS GTM, less focused on usage metering.",
+      "url": "https://stri.pe/sl/xoPyvmCO",
+      "profile_url": "https://stri.pe/sl/KtdZeo60",
+      "query_used": "subscription billing SaaS metering",
+      "also_surfaced_by": [
+        "Stripe billing Payment Links subscription SaaS"
+      ],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false
+      },
+      "goal_tags": [
+        "billing_metering"
+      ]
+    },
+    {
+      "bucket": "adjacent",
+      "name": "Runpod",
+      "username": "runpod",
+      "why_matched": "GPU/AI compute platform for building and running AI systems \u2014 adjacent to cloud-credits style cost reduction (not a Partner Services Fund admin, but relevant infra spend partner).",
+      "url": "https://stri.pe/sl/q3HVUAlj",
+      "profile_url": "https://stri.pe/sl/3tzrbxeT",
+      "query_used": "GPU cloud compute",
+      "also_surfaced_by": [],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false
+      },
+      "goal_tags": [
+        "partner_funding_cloud"
+      ]
+    },
+    {
+      "bucket": "adjacent",
+      "name": "DigitalOcean",
+      "username": "digitalocean",
+      "why_matched": "Hyperscaler-adjacent cloud provider known for startup credits programs; surfaced under GPU/cloud compute. Directory profile thin (no description) \u2014 treat as brand match for cloud credits pathway, not PSF.",
+      "url": "https://stri.pe/sl/dVkmIDhz",
+      "profile_url": "https://stri.pe/sl/YEqRIgPz",
+      "query_used": "GPU cloud compute",
+      "also_surfaced_by": [],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false
+      },
+      "goal_tags": [
+        "partner_funding_cloud"
+      ]
+    },
+    {
+      "bucket": "needs-review",
+      "name": "Orb, Inc.",
+      "username": "withorb",
+      "why_matched": "Repeatedly ranked in usage-metering / AI billing queries (OpenMeter-adjacent cluster). Description and site URL empty in Directory \u2014 strong industry brand for usage billing but needs manual verification of profile completeness.",
+      "url": "",
+      "profile_url": "https://stri.pe/sl/rNz1SKMk",
+      "query_used": "usage-based metering LLM API SaaS",
+      "also_surfaced_by": [
+        "AI API billing metering",
+        "subscription billing SaaS metering"
+      ],
+      "trust_signals": {
+        "stripe_projects": false,
+        "mpp": false,
+        "link": false,
+        "stripe_app": false
+      },
+      "goal_tags": [
+        "billing_metering"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "severity": "info",
+      "issue": "stripe CLI was missing at start; installed v1.44.0 from GitHub release + `stripe plugin install directory` (auto).",
+      "resolved": true,
+      "commands": [
+        "curl -sL https://github.com/stripe/stripe-cli/releases/download/v1.44.0/stripe_1.44.0_linux_x86_64.tar.gz | tar -xz -C /usr/local/bin stripe",
+        "stripe plugin install directory"
+      ]
+    },
+    {
+      "severity": "info",
+      "issue": "Not authenticated to a Stripe account (`stripe whoami` \u2192 Authenticated: false). Directory search still returned public results without login.",
+      "resolved": false,
+      "commands": [
+        "stripe login"
+      ],
+      "note": "Login needed for Projects catalog/install and any purchase/MPP spend flows. Discovery only \u2014 no purchases made."
+    },
+    {
+      "severity": "coverage",
+      "issue": "True Partner Services Funds / hyperscaler AI startup cloud-credit programs are poorly represented (or absent) in Stripe Directory. Treat partner-funding goal as mostly outside this catalog; use AWS/GCP/Azure/Stripe Atlas partner portals separately.",
+      "resolved": false,
+      "commands": []
+    },
+    {
+      "severity": "empty_filter",
+      "issue": "Query `agent payment API --mpp-supported` returned []. Broader `API --mpp-supported` worked.",
+      "resolved": true,
+      "commands": [
+        "stripe directory search \"API\" --format json --mpp-supported --limit=10"
+      ]
+    }
+  ],
+  "notes": [
+    "No purchases performed. MPP entries listed for discovery only.",
+    "Do not invent vendors outside CLI JSON; all shortlist rows came from stripe directory search.",
+    "Partner-funding angle is sparse in Directory; cloud compute vendors are adjacent proxies only."
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "name": "Diamondnode North Star MRR",
+  "owner": "X-AXIOM-EVERYONE",
+  "datasets": [
+    "ops-maintenance",
+    "ops-revenue"
+  ],
+  "refreshTime": 300,
+  "schemaVersion": 2,
+  "timeWindowStart": "qr-now-7d",
+  "timeWindowEnd": "qr-now",
+  "charts": [
+    {
+      "id": "intro",
+      "name": "North Star",
+      "type": "Note",
+      "text": "# Diamondnode North Star — 13 × $70k MRR\n\n**Audience:** Lead AI Systems Architect / founder\n**Decisions:** (1) which stream to actuate next (2) whether cash path is live\n\nLocal truth until Axiom ingest: `reports/goal-scorecard-latest.json`, `reports/r01-go-live.json`, `reports/cycle-latest.json`.\n\nKPI panels below are **deferred Notes** (skill: Compute or Defer). Intended APL: `dashboard-spec/north-star-mrr.apl.json`."
+    },
+    {
+      "id": "total-mrr",
+      "name": "Total MRR (USD)",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Statistic: latest total_mrr_usd (USD). Decision: cash path progress?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "streams-at-floor",
+      "name": "Streams at floor (/13)",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Statistic: latest streams_at_floor 0–13. Decision: which streams need actuation?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "r01-estimated-mrr",
+      "name": "R01 estimated MRR",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Statistic: R01 estimated_mrr USD. Decision: is inference monetizing?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "ptv-crystal",
+      "name": "PTV crystal score",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Statistic: crystal_value 0–1. Decision: intrinsic loop healthy?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "go-live-blockers",
+      "name": "R01 go-live blockers count",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Statistic: go_live_blockers_count. Decision: cash path live?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "ops-cycle-health",
+      "name": "Ops cycle health",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Statistic: % cycles with verification_ok. Decision: trust actuation loop?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "mrr-trend",
+      "name": "Total MRR trend",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** TimeSeries: total_mrr_usd by bin_auto(_time). Decision: trajectory to $910k?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "stream-mrr-table",
+      "name": "MRR by stream (R01–R13)",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Table: per-stream MRR. Decision: which stream to actuate next?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    },
+    {
+      "id": "blockers-evidence",
+      "name": "Go-live blocker evidence",
+      "type": "Note",
+      "text": "**Deferred — blocked by:** ops-maintenance schema not discovered (no live getschema) and/or scorecard events not ingested.\n\n**Original spec:** Table: raw go_live_blockers. Decision: what to clear for cash?.\n\n**To unblock:** vault-set AXIOM_TOKEN + AXIOM_ORG_ID → vault-apply-axiom; create dataset; ingest goal-scorecard/cycle; getschema; re-run with --promote-apl."
+    }
+  ],
+  "layout": [
+    {
+      "i": "intro",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 3
+    },
+    {
+      "i": "total-mrr",
+      "x": 0,
+      "y": 3,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "i": "streams-at-floor",
+      "x": 4,
+      "y": 3,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "i": "r01-estimated-mrr",
+      "x": 8,
+      "y": 3,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "i": "ptv-crystal",
+      "x": 0,
+      "y": 6,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "i": "go-live-blockers",
+      "x": 4,
+      "y": 6,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "i": "ops-cycle-health",
+      "x": 8,
+      "y": 6,
+      "w": 4,
+      "h": 3
+    },
+    {
+      "i": "mrr-trend",
+      "x": 0,
+      "y": 9,
+      "w": 6,
+      "h": 3
+    },
+    {
+      "i": "stream-mrr-table",
+      "x": 6,
+      "y": 9,
+      "w": 6,
+      "h": 3
+    },
+    {
+      "i": "blockers-evidence",
+      "x": 0,
+      "y": 12,
+      "w": 12,
+      "h": 3
+    }
+  ],
+  "description": "13 streams × $70k MRR floor, procedural truth, R01 inference cash path. Exec/founder board."
+}

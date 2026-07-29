@@ -4,3 +4,4 @@ reports/*.json
 .env
 *.log
 chains/thirdweb/node_modules/
+__pycache__/

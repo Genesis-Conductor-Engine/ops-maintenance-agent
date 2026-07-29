@@ -20,9 +20,11 @@ const SERVICES = [
   "cloudflared",
   "cloudflared-inference",
   "ops-inference-meter",
+  "ops-x402-monetize",
 ];
 
 const INFERENCE_LOCAL = process.env.INFERENCE_METER_URL || "http://127.0.0.1:8792";
+const X402_LOCAL = process.env.X402_MONETIZE_URL || "http://127.0.0.1:8793";
 
 function sh(cmd, opts = {}) {
   try {
@@ -249,6 +251,41 @@ export function checkInferenceMeter() {
   };
 }
 
+/**
+ * x402 monetize service + flywheel surface (local). Not critical if unit absent on older hosts.
+ */
+export function checkX402Monetize() {
+  const unit = sh("systemctl is-active ops-x402-monetize").out || "unknown";
+  const health = sh(`curl -sS -m 3 ${X402_LOCAL}/health`);
+  let healthOk = false;
+  let healthJson = null;
+  if (health.ok) {
+    try {
+      healthJson = JSON.parse(health.out);
+      healthOk = healthJson?.ok === true;
+    } catch {
+      healthOk = false;
+    }
+  }
+  const challenge = sh(
+    `curl -sS -m 3 -o /dev/null -w '%{http_code}' '${X402_LOCAL}/x402/challenge?resource=urn:genesis:agentic:skill:inference-credits'`,
+  );
+  const challengeOk = challenge.out === "402";
+  const localOk = unit === "active" && healthOk && challengeOk;
+  return {
+    unit,
+    local: {
+      ok: localOk,
+      health_ok: healthOk,
+      challenge_402: challengeOk,
+      detail: localOk
+        ? `ops-x402-monetize ${unit}; challenge 402; payTo=${healthJson?.payTo || "?"}`
+        : `ops-x402-monetize ${unit}; health=${healthOk}; challenge=${challenge.out}`,
+      raw: healthJson,
+    },
+  };
+}
+
 function checkObservability() {
   // Axiom deliberately skipped — local stack: Redis + genesis-ops SSE + Kimi + cashflow ledger
   const redis = sh("redis-cli ping");
@@ -314,6 +351,7 @@ export function runVerification() {
   const gh = checkGh();
   const obs = checkObservability();
   const inference = checkInferenceMeter();
+  const x402 = checkX402Monetize();
 
   const flow = [
     {
@@ -330,6 +368,11 @@ export function runVerification() {
       boundary: "Inference meter (R01)",
       status: boundaryStatus(inference.local.ok),
       evidence: inference.local.detail,
+    },
+    {
+      boundary: "x402 monetize + flywheel",
+      status: boundaryStatus(x402.local.ok),
+      evidence: x402.local.detail,
     },
     {
       boundary: "Inference public URL (optional)",
@@ -395,6 +438,7 @@ export function runVerification() {
     "Core services (systemd)",
     "openclaw-gateway",
     "Inference meter (R01)",
+    "x402 monetize + flywheel",
     "Kimi reachability",
     "Kimi bot identity",
     "Redis (cashflow + cache)",
@@ -407,6 +451,7 @@ export function runVerification() {
     finished: new Date().toISOString(),
     services,
     inference,
+    x402,
     kimi,
     gh: {
       auth: gh.auth,

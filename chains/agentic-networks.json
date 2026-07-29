@@ -1,22 +1,30 @@
 {
   "version": 1,
   "purpose": "Agentic arbitration + cashflow settlement mesh (R07 Soul.sol + multi-chain)",
-  "north_star": "Support 13×$70k MRR via on-chain settlement, LP, and agent economies",
+  "north_star": "Support 13\u00d7$70k MRR via on-chain settlement, LP, and agent economies",
   "signers": {
     "preferred": "hardhat-ledger",
-    "hot_key_env": ["ETH_PRIVATE_KEY", "BASE_PRIVATE_KEY"],
+    "hot_key_env": [
+      "ETH_PRIVATE_KEY",
+      "BASE_PRIVATE_KEY"
+    ],
     "ledger_env": "LEDGER_ACCOUNT",
     "note": "Hot keys only for rotation sweeps; production arbitration uses Ledger"
   },
   "tooling": {
     "rust": {
       "crate": "/root/agentic-arbitration",
-      "deps": ["alloy"],
+      "deps": [
+        "alloy"
+      ],
       "role": "multi-chain RPC, receipts, balance, event decode for arbitration"
     },
     "hardhat": {
       "project": "/home/diamondnode/Yennefer",
-      "plugins": ["@nomicfoundation/hardhat-toolbox", "@nomicfoundation/hardhat-ledger"],
+      "plugins": [
+        "@nomicfoundation/hardhat-toolbox",
+        "@nomicfoundation/hardhat-ledger"
+      ],
       "role": "deploy, verify, ledger-signed txs"
     },
     "foundry": {
@@ -35,6 +43,38 @@
       "ledger": "/root/ops-maintenance-agent/scripts/cashflow-ledger.mjs",
       "redis_key": "diamondnode:cashflow:v1",
       "stream_primary": "R07"
+    },
+    "shopify": {
+      "module": "/root/ops-maintenance-agent/shopify-agentic",
+      "role": "x402 facilitator + Admin order attribution + Payments Apps session resolve + Partner reconcile",
+      "preview_store": {
+        "name": "Genesis Agentic Commerce",
+        "domain": "51wnq0-ip.myshopify.com",
+        "id": "83057541348"
+      },
+      "attribution": {
+        "path_a": "Admin orderCreate with customAttributes (tx_hash, chain_id, agent_id, stream_id)",
+        "path_b": "Payments Apps paymentSessionResolve(networkTransactionId=tx_hash)",
+        "idempotency": "chainId:txHash"
+      },
+      "cli": {
+        "dry_run": "node /root/ops-maintenance-agent/shopify-agentic/src/cli.mjs dry-run",
+        "challenge": "node /root/ops-maintenance-agent/shopify-agentic/src/cli.mjs challenge"
+      }
+    },
+    "suivision": {
+      "default_explorer": "https://suivision.xyz",
+      "module_node": "/root/ops-maintenance-agent/chains/suivision.mjs",
+      "module_browser": "/home/diamondnode/yennefer-quest-deploy/public/js/suivision.js",
+      "role": "Default Sui explorer redirects for DApps (account, txblock, coin, nft, object)",
+      "paths": {
+        "account": "/account/{accountaddress}",
+        "txblock": "/txblock/{txndigest}",
+        "coin": "/coin/{cointype}",
+        "nft_collection": "/nft/collection/{collectiontype}",
+        "nft_object": "/nft/object/{objectid}",
+        "object": "/object/{objectid}"
+      }
     }
   },
   "networks": [
@@ -42,92 +82,203 @@
       "id": "base",
       "name": "Base",
       "chainId": 8453,
-      "rpc_env": ["BASE_MAINNET_RPC", "BASE_RPC_URL", "COINBASE_BASE_RPC"],
+      "rpc_env": [
+        "BASE_MAINNET_RPC",
+        "BASE_RPC_URL",
+        "COINBASE_BASE_RPC"
+      ],
       "rpc_default": "https://mainnet.base.org",
       "rpc_preferred": "Coinbase CDP (vault: BASE_MAINNET_RPC)",
       "explorer": "https://basescan.org",
-      "role": ["Soul.sol meshes", "Aerodrome LP", "primary agent settlement"],
-      "dex": ["aerodrome"],
+      "role": [
+        "Soul.sol meshes",
+        "Aerodrome LP",
+        "primary agent settlement"
+      ],
+      "dex": [
+        "aerodrome"
+      ],
       "hardhat_network": "baseMainnet",
-      "cashflow_streams": ["R07", "R05", "R12"]
+      "cashflow_streams": [
+        "R07",
+        "R05",
+        "R12"
+      ]
     },
     {
       "id": "base-sepolia",
       "name": "Base Sepolia",
       "chainId": 84532,
-      "rpc_env": ["BASE_SEPOLIA_RPC"],
+      "rpc_env": [
+        "BASE_SEPOLIA_RPC"
+      ],
       "rpc_default": "https://sepolia.base.org",
       "explorer": "https://sepolia.basescan.org",
-      "role": ["test deploy", "arbitration dry-run"],
+      "role": [
+        "test deploy",
+        "arbitration dry-run"
+      ],
       "hardhat_network": "baseSepolia",
-      "cashflow_streams": ["R07"]
+      "cashflow_streams": [
+        "R07"
+      ]
     },
     {
       "id": "optimism",
       "name": "Optimism",
       "chainId": 10,
-      "rpc_env": ["OPTIMISM_RPC_URL", "OP_RPC_URL"],
+      "rpc_env": [
+        "OPTIMISM_RPC_URL",
+        "OP_RPC_URL"
+      ],
       "rpc_default": "https://mainnet.optimism.io",
       "explorer": "https://optimistic.etherscan.io",
-      "role": ["OP superchain agent routing", "cross-L2 arbitration"],
+      "role": [
+        "OP superchain agent routing",
+        "cross-L2 arbitration"
+      ],
       "hardhat_network": "optimism",
-      "cashflow_streams": ["R07", "R09"]
+      "cashflow_streams": [
+        "R07",
+        "R09"
+      ]
     },
     {
       "id": "optimism-sepolia",
       "name": "Optimism Sepolia",
       "chainId": 11155420,
-      "rpc_env": ["OPTIMISM_SEPOLIA_RPC"],
+      "rpc_env": [
+        "OPTIMISM_SEPOLIA_RPC"
+      ],
       "rpc_default": "https://sepolia.optimism.io",
       "explorer": "https://sepolia-optimism.etherscan.io",
-      "role": ["OP testnet"],
+      "role": [
+        "OP testnet"
+      ],
       "hardhat_network": "optimismSepolia",
-      "cashflow_streams": ["R07"]
+      "cashflow_streams": [
+        "R07"
+      ]
     },
     {
       "id": "polygon",
       "name": "Polygon PoS",
       "chainId": 137,
-      "rpc_env": ["POLYGON_RPC_URL", "MATIC_RPC_URL"],
+      "rpc_env": [
+        "POLYGON_RPC_URL",
+        "MATIC_RPC_URL"
+      ],
       "rpc_default": "https://polygon-rpc.com",
       "explorer": "https://polygonscan.com",
-      "role": ["low-fee agent marketplace txs", "skill registry payments"],
+      "role": [
+        "low-fee agent marketplace txs",
+        "skill registry payments"
+      ],
       "hardhat_network": "polygon",
-      "cashflow_streams": ["R07", "R09", "R05"]
+      "cashflow_streams": [
+        "R07",
+        "R09",
+        "R05"
+      ]
     },
     {
       "id": "polygon-amoy",
       "name": "Polygon Amoy",
       "chainId": 80002,
-      "rpc_env": ["POLYGON_AMOY_RPC"],
+      "rpc_env": [
+        "POLYGON_AMOY_RPC"
+      ],
       "rpc_default": "https://rpc-amoy.polygon.technology",
       "explorer": "https://amoy.polygonscan.com",
-      "role": ["polygon testnet"],
+      "role": [
+        "polygon testnet"
+      ],
       "hardhat_network": "polygonAmoy",
-      "cashflow_streams": ["R07"]
+      "cashflow_streams": [
+        "R07"
+      ]
     },
     {
       "id": "ethereum",
       "name": "Ethereum",
       "chainId": 1,
-      "rpc_env": ["ETH_RPC_URL", "MAINNET_RPC_URL"],
+      "rpc_env": [
+        "ETH_RPC_URL",
+        "MAINNET_RPC_URL"
+      ],
       "rpc_default": "https://eth.llamarpc.com",
       "explorer": "https://etherscan.io",
-      "role": ["canonical settlement", "bridge root"],
+      "role": [
+        "canonical settlement",
+        "bridge root"
+      ],
       "hardhat_network": "mainnet",
-      "cashflow_streams": ["R07", "R12"]
+      "cashflow_streams": [
+        "R07",
+        "R12"
+      ]
+    },
+    {
+      "id": "sui",
+      "name": "Sui",
+      "chainId": 101,
+      "rpc_env": [
+        "SUI_RPC_URL",
+        "SUI_FULLNODE_URL"
+      ],
+      "rpc_default": "https://fullnode.mainnet.sui.io:443",
+      "explorer": "https://suivision.xyz",
+      "explorer_paths": {
+        "account": "https://suivision.xyz/account/{id}",
+        "tx": "https://suivision.xyz/txblock/{id}",
+        "coin": "https://suivision.xyz/coin/{id}",
+        "nft_collection": "https://suivision.xyz/nft/collection/{id}",
+        "nft_object": "https://suivision.xyz/nft/object/{id}",
+        "object": "https://suivision.xyz/object/{id}"
+      },
+      "role": [
+        "Sui agent settlement",
+        "NFT/object explorer via SuiVision"
+      ],
+      "cashflow_streams": [
+        "R07",
+        "R09"
+      ]
+    },
+    {
+      "id": "sui-testnet",
+      "name": "Sui Testnet",
+      "chainId": 103,
+      "rpc_env": [
+        "SUI_TESTNET_RPC"
+      ],
+      "rpc_default": "https://fullnode.testnet.sui.io:443",
+      "explorer": "https://testnet.suivision.xyz",
+      "role": [
+        "Sui test deploy"
+      ],
+      "cashflow_streams": [
+        "R07"
+      ]
     }
   ],
   "agentic_surfaces": [
     {
       "name": "Yennefer",
       "path": "/home/diamondnode/Yennefer",
-      "includes": ["hardhat-ledger", "aerodrome-lp", "contracts Genesis/QFLOP/Thermo"]
+      "includes": [
+        "hardhat-ledger",
+        "aerodrome-lp",
+        "contracts Genesis/QFLOP/Thermo"
+      ]
     },
     {
       "name": "genesis-conductor-bundle/epoch",
       "path": "/home/diamondnode/genesis-conductor-bundle/epoch",
-      "includes": ["foundry", "openzeppelin"]
+      "includes": [
+        "foundry",
+        "openzeppelin"
+      ]
     },
     {
       "name": "Soul.sol meshes",

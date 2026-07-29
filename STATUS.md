@@ -1,4 +1,4 @@
-# Ops Maintenance Status — 2026-07-21 (R01 go-live)
+# Ops Maintenance Status — 2026-07-21 (R01 + x402 monetize + flywheel)
 
 ## North star
 **Cashflow accumulation**: 13 streams × **$70,000** MRR floor = **$910,000** combined.
@@ -8,9 +8,32 @@
 | Stream | Product | Endpoint | Pricing |
 |--------|---------|----------|---------|
 | **R01** | Metered Sovereign LLM API | **https://inference.yennefer.quest** (+ local `:8792` / nginx `/v1/`) | starter **$29**/mo · pro **$149** · enterprise **$999** |
+| **R01/R05/R09** | **x402 agent pay** | local `:8793` (`ops-x402-monetize`) | inference pack **$2.50** · skill list **$29** · coalition seat **$70** |
 | **R02** | q-mem GPU backend | `:8082` (proxied via meter) | bundled with R01 tiers |
-| **R07** | On-chain mesh | alloy probe Base/OP/Polygon/ETH | settlement ready |
+| **R07** | On-chain mesh + treasury | alloy probe Base/OP/Polygon/ETH · payTo `0x9545…6956` | settlement ready |
 | **R11/R12** | Telemetry API (Stripe) | https://api.genesisconductor.io | pro **$49** · enterprise **$499** |
+
+### Revenue flywheel (finalized)
+
+Doc: `docs/REVENUE_FLYWHEEL.md` · snapshot: `reports/revenue-flywheel-latest.json` · go-live: `reports/monetize-go-live.json`
+
+```text
+Agent discover → 402 challenge → USDC (Base) → settle → cashflow (+ Shopify dry-run) → mint API key → meter usage → reinvest
+```
+
+```bash
+systemctl status ops-x402-monetize
+curl -s http://127.0.0.1:8793/health | jq .
+curl -s http://127.0.0.1:8793/flywheel | jq .
+curl -i 'http://127.0.0.1:8793/x402/challenge?resource=urn:genesis:agentic:skill:inference-credits'
+npm run flywheel
+# scaffold settle (local only; ALLOW_UNVERIFIED=1 in unit):
+npm run flywheel:seed
+```
+
+**payTo (Base USDC):** `0x9545e2439c5c75d3aA723AcaC1AA6B0fa1DB6956`
+
+**Blockers before public agent expose:** Save Shopify store + Admin token; set `X402_FACILITATOR_SECRET`; clear `X402_ALLOW_UNVERIFIED` + RPC-verify receipts; optional Stripe Payment Links for human rail.
 
 ### Inference meter (R01) — public
 

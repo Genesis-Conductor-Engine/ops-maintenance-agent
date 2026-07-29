@@ -1,0 +1,12 @@
+[Unit]
+Description=Unilateral revenue Ralph loop every 10 minutes (all agentic sessions share state)
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=10min
+AccuracySec=30s
+Persistent=true
+Unit=ops-revenue-ralph.service
+
+[Install]
+WantedBy=timers.target

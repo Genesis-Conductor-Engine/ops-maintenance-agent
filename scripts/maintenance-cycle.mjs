@@ -447,6 +447,47 @@ async function main() {
   const extra = extraParts.filter(Boolean).join("\n");
 
   const msg = buildMessage(report, extra);
+  console.log("[cycle] procedural truth + goal scorecard…");
+  let procedural_truth = null;
+  let goal_scorecard = null;
+  try {
+    const ptvOut = sh("node scripts/procedural-truth.mjs", { timeout: 90_000 });
+    if (ptvOut.ok) {
+      try {
+        procedural_truth = JSON.parse(ptvOut.out);
+      } catch {
+        procedural_truth = { raw: ptvOut.out.slice(0, 500) };
+      }
+    } else {
+      procedural_truth = { ok: false, error: ptvOut.out.slice(0, 300) };
+    }
+    console.log(
+      `[cycle] ptv ok=${procedural_truth?.ok} crystal=${procedural_truth?.crystal_value}`
+    );
+  } catch (e) {
+    procedural_truth = { ok: false, error: String(e?.message || e) };
+  }
+  try {
+    const gsOut = sh("node scripts/goal-scorecard.mjs", { timeout: 90_000 });
+    const gsPath = join(process.cwd(), "reports", "goal-scorecard-latest.json");
+    if (existsSync(gsPath)) {
+      goal_scorecard = JSON.parse(readFileSync(gsPath, "utf8"));
+    } else if (gsOut.ok) {
+      try {
+        goal_scorecard = JSON.parse(gsOut.out);
+      } catch {
+        goal_scorecard = { raw: gsOut.out.slice(0, 500) };
+      }
+    }
+    if (goal_scorecard?.totals) {
+      console.log(
+        `[cycle] goal streams_at_floor=${goal_scorecard.totals.streams_at_floor}/13 mrr=$${goal_scorecard.totals.total_mrr_usd}`
+      );
+    }
+  } catch (e) {
+    goal_scorecard = { error: String(e?.message || e) };
+  }
+
   console.log("[cycle] kimi update…");
   const kimi = sendKimiUpdate(msg);
   console.log(JSON.stringify(kimi, null, 2));
@@ -478,6 +519,15 @@ async function main() {
       ? { totals: cashflow.totals, backend: cashflow.backend, updated_at: cashflow.updated_at }
       : cashflow,
     deployments,
+    procedural_truth,
+    goal_scorecard: goal_scorecard
+      ? {
+          ok: goal_scorecard.ok,
+          totals: goal_scorecard.totals,
+          procedural_truth: goal_scorecard.procedural_truth,
+          priorities: goal_scorecard.priorities,
+        }
+      : null,
     pr,
     kimi,
   };

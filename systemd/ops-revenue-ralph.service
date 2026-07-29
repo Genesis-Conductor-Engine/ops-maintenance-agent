@@ -1,0 +1,15 @@
+[Unit]
+Description=Revenue Ralph loop — one unilateral iteration toward $910k MRR
+After=network-online.target ops-inference-meter.service ops-x402-monetize.service
+Wants=ops-inference-meter.service ops-x402-monetize.service redis-server.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/ops-maintenance-agent
+EnvironmentFile=-/root/.vault/env/agent.env
+Environment=X402_MONETIZE_URL=http://127.0.0.1:8793
+Environment=INFERENCE_METER_URL=http://127.0.0.1:8792
+ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/revenue-ralph-loop.mjs
+Nice=10
+StandardOutput=journal
+StandardError=journal

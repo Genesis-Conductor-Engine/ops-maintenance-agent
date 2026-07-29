@@ -14,7 +14,10 @@
     "agent:dev": "wrangler dev",
     "agent:deploy": "wrangler deploy",
     "workflow:typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "echo 'Scaffold only — deploy via wrangler / vercel as configured'"
+    "build": "echo 'Scaffold only \u2014 deploy via wrangler / vercel as configured'",
+    "flywheel": "node scripts/revenue-flywheel.mjs status",
+    "flywheel:seed": "node scripts/revenue-flywheel.mjs seed-demo",
+    "x402:monetize": "node scripts/x402-monetize-server.mjs"
   },
   "dependencies": {
     "agents": "^0.0.95",

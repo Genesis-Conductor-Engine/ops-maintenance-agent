@@ -29,6 +29,7 @@ const RESTART_ALLOWLIST = [
   "cloudflared-inference",
   "ops-maintenance-http",
   "ops-inference-meter",
+  "ops-x402-monetize",
 ];
 
 const FORBIDDEN = new Set(["ssh", "sshd", "ssh.service", "sshd.service"]);
