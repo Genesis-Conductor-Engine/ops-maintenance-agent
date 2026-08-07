@@ -13,9 +13,9 @@ Environment=X402_PAY_TO_ADDRESS=0x9545e2439c5c75d3aA723AcaC1AA6B0fa1DB6956
 Environment=X402_DEFAULT_NETWORK=base
 Environment=X402_CHAIN_ID=8453
 Environment=INFERENCE_METER_URL=http://127.0.0.1:8792
-Environment=SHOPIFY_ATTRIBUTION_DRY_RUN=1
-# Scaffold only until on-chain verify wired; remove for production
-Environment=X402_ALLOW_UNVERIFIED=1
+# LIVE (2026-08-07 human auth): real Shopify attribution + on-chain verified settle
+Environment=SHOPIFY_ATTRIBUTION_DRY_RUN=0
+Environment=X402_ALLOW_UNVERIFIED=0
 ExecStart=/usr/bin/node /root/ops-maintenance-agent/scripts/x402-monetize-server.mjs
 Restart=always
 RestartSec=3
