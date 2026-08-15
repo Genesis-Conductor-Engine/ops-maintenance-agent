@@ -6,7 +6,15 @@ import {
   countRegisteredTunnelConnections,
   buildR01Readiness,
   buildPublicEdgeBlockers,
+  parseHealthStatus,
 } from "./r01-public-edge.mjs";
+
+test("parseHealthStatus reads a trailing HTTP code", () => {
+  assert.equal(parseHealthStatus("403"), 403);
+  assert.equal(parseHealthStatus("200"), 200);
+  assert.equal(parseHealthStatus(""), null);
+  assert.equal(parseHealthStatus("fail"), null);
+});
 
 test("named-or-custom mode does not make a 403 edge look healthy", () => {
   const r = evaluatePublicEdge({

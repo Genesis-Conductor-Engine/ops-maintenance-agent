@@ -1,6 +1,12 @@
 const CF_1050 = /error code:\s*1050/i;
 const REGISTERED = /Registered tunnel connection/;
 
+export function parseHealthStatus(raw) {
+  const s = String(raw ?? "").trim();
+  if (!/^\d{3}$/.test(s)) return null;
+  return Number(s);
+}
+
 export function evaluatePublicEdge({
   publicUrl,
   mode,

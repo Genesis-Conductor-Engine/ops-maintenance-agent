@@ -22,6 +22,10 @@ import {
   loadInferencePublicUrl,
   checkInferenceMeter,
 } from "./verify.mjs";
+import {
+  buildR01Readiness,
+  buildPublicEdgeBlockers,
+} from "./r01-public-edge.mjs";
 import { runPrBabysitAll } from "./pr-babysit.mjs";
 import { sendKimiUpdate, buildMessage } from "./kimi-update.mjs";
 import { runCrashAnalysis } from "./crash-analyze.mjs";
@@ -205,6 +209,17 @@ function writeR01GoLive(inference, verificationReport) {
   const outDir = join(process.cwd(), "reports");
   mkdirSync(outDir, { recursive: true });
   const meter = verificationReport?.inference || checkInferenceMeter();
+  const probe = meter?.public?.probe || {};
+  const tunnelUnitActive =
+    meter?.tunnel_unit === "active" || isUnitActive("cloudflared-inference");
+  const edgeReadiness = buildR01Readiness({
+    publicUrl: inference.public_url,
+    mode: inference.public_url_mode,
+    healthStatus: probe.status ?? (probe.ok === true ? 200 : null),
+    healthBody: probe.body || probe.detail || "",
+    tunnelUnitActive,
+    registeredConnections: meter?.tunnel_registered_connections,
+  });
   const snap = {
     stream: "R01",
     product: "Metered Sovereign LLM API",
@@ -212,17 +227,15 @@ function writeR01GoLive(inference, verificationReport) {
     readiness: {
       meter_local_ok: Boolean(inference.meter_health_ok),
       meter_unit_active: meter?.unit === "active" || isUnitActive("ops-inference-meter"),
-      tunnel_unit_active:
-        meter?.tunnel_unit === "active" || isUnitActive("cloudflared-inference"),
+      tunnel_unit_active: tunnelUnitActive,
       public_url_present: Boolean(inference.public_url),
       public_url_mode: inference.public_url_mode || null,
       is_trycloudflare: Boolean(inference.is_trycloudflare),
-      // trycloudflare is acceptable staging; named tunnel preferred for production
-      public_edge_ok:
-        Boolean(inference.public_url) &&
-        (meter?.public?.probe?.ok === true ||
-          inference.public_url_mode === "named-or-custom" ||
-          inference.is_trycloudflare),
+      public_edge_ok: edgeReadiness.public_edge_ok,
+      public_edge_reason: edgeReadiness.public_edge_reason,
+      public_health_status: edgeReadiness.public_health_status,
+      tunnel_control_plane_ok: edgeReadiness.tunnel_control_plane_ok,
+      tunnel_control_plane_reason: edgeReadiness.tunnel_control_plane_reason,
       stripe_webhook_secret: Boolean(inference.stripe_webhook_secret),
       stripe_checkout_urls_any: Object.values(
         inference.stripe_checkout_urls || {}
@@ -253,11 +266,11 @@ function writeR01GoLive(inference, verificationReport) {
     },
     go_live_blockers: [
       !inference.meter_health_ok && "inference meter health down",
-      !inference.public_url && "public URL not written",
       !inference.stripe_webhook_secret &&
         "STRIPE_WEBHOOK_SECRET missing in vault (webhook returns 503 until set)",
       !Object.values(inference.stripe_checkout_urls || {}).some(Boolean) &&
         "Stripe checkout Payment Links not set (optional until Dashboard products exist)",
+      ...buildPublicEdgeBlockers(edgeReadiness),
     ].filter(Boolean),
     notes: [
       "Admin revenue/keys endpoints are localhost-only (public /admin → 404).",
