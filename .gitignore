@@ -13,3 +13,6 @@ shopify-agentic/.env
 
 # ACP local runtime state (keep vendor schemas trackable; never commit runtime state)
 acp/state/
+
+# Isolated git worktrees (SDD)
+.worktrees/
