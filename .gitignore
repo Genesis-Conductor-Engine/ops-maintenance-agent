@@ -5,3 +5,14 @@ reports/*.json
 *.log
 chains/thirdweb/node_modules/
 __pycache__/
+
+# Nested shopify-agentic package — runtime state/secrets (also listed in shopify-agentic/.gitignore)
+shopify-agentic/node_modules/
+shopify-agentic/state/
+shopify-agentic/.env
+
+# ACP local runtime state (keep vendor schemas trackable; never commit runtime state)
+acp/state/
+
+# Isolated git worktrees (SDD)
+.worktrees/

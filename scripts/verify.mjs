@@ -6,6 +6,7 @@
 import { execSync } from "node:child_process";
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { parseHealthStatus } from "./r01-public-edge.mjs";
 
 const SERVICES = [
   "openclaw-gateway",
@@ -211,18 +212,30 @@ export function checkInferenceMeter() {
   }
 
   const pub = loadInferencePublicUrl();
-  let publicProbe = { ok: false, skipped: true, detail: "no public URL" };
+  let publicProbe = {
+    ok: false,
+    skipped: true,
+    status: null,
+    body: "",
+    detail: "no public URL",
+  };
   if (pub.public_url) {
+    const base = pub.public_url.replace(/'/g, "");
     const code = sh(
-      `curl -sS -m 5 -o /dev/null -w '%{http_code}' ${pub.public_url.replace(/'/g, "")}/health`
+      `curl -sS -m 5 -o /dev/null -w '%{http_code}' ${base}/health`
     );
-    const httpOk = code.out === "200";
+    const body = sh(`curl -sS -m 5 ${base}/health`);
+    const bodyText = body.out || "";
+    const status = parseHealthStatus(code.out);
+    const httpOk = status === 200;
     publicProbe = {
       ok: httpOk,
       skipped: false,
+      status,
+      body: bodyText.slice(0, 200),
       detail: httpOk
         ? `${pub.public_url}/health → 200${pub.is_trycloudflare ? " (trycloudflare)" : ""}`
-        : `${pub.public_url}/health → ${code.out || "fail"}${pub.is_trycloudflare ? " (trycloudflare optional)" : ""}`,
+        : `${pub.public_url}/health → ${status ?? (code.out || "fail")}${pub.is_trycloudflare ? " (trycloudflare optional)" : ""}`,
     };
   }
 

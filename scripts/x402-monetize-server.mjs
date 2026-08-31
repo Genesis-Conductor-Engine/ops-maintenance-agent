@@ -17,12 +17,16 @@
  *   POST /x402/mint-credits    { settle_fingerprint, tier }  (after settle)
  *   GET  /discovery            Bazaar-style agent discovery catalog
  *
- * Settle verification: unless DRY_RUN or X402_ALLOW_UNVERIFIED=1 (explicit
- * scaffold escape hatches), /x402/settle no longer trusts a caller-supplied
- * proof.verified flag. It requires the claimed amount to meet the resource's
- * catalog price, then calls verifyOnChainReceipt() to confirm a real, successful
- * on-chain transaction with a matching USDC Transfer log to PAY_TO, at least
- * X402_MIN_CONFIRMATIONS deep. Fails closed on any RPC error or mismatch.
+ * Settle verification: unless X402_ALLOW_UNVERIFIED=1 (explicit scaffold escape),
+ * /x402/settle never trusts a caller-supplied proof.verified flag. It requires
+ * the claimed amount to meet the resource's catalog price, then calls
+ * verifyOnChainReceipt() to confirm a real, successful on-chain transaction
+ * with a matching USDC Transfer log to PAY_TO, at least X402_MIN_CONFIRMATIONS
+ * deep. Fails closed on any RPC error or mismatch.
+ *
+ * Shopify attribution dry-run is independent: missing SHOPIFY_ADMIN_TOKEN or
+ * SHOPIFY_ATTRIBUTION_DRY_RUN=1 still dry-runs orderCreate, but does NOT skip
+ * on-chain verification when ALLOW_UNVERIFIED is off.
  */
 import http from "node:http";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
@@ -51,9 +55,14 @@ const PUBLIC_BASE =
   process.env.INFERENCE_PUBLIC_URL ||
   "https://inference.yennefer.quest";
 const ALLOW_UNVERIFIED = process.env.X402_ALLOW_UNVERIFIED === "1";
+const HAS_SHOPIFY_TOKEN = Boolean(
+  (process.env.SHOPIFY_ADMIN_TOKEN || "").trim(),
+);
+// Shopify orderCreate attribution only — does not gate on-chain verify.
 const DRY_RUN =
-  process.env.SHOPIFY_ATTRIBUTION_DRY_RUN === "1" ||
-  !process.env.SHOPIFY_ADMIN_TOKEN;
+  process.env.SHOPIFY_ATTRIBUTION_DRY_RUN === "1" || !HAS_SHOPIFY_TOKEN;
+// Production on-chain path: verify unless explicit scaffold override.
+const ONCHAIN_VERIFY = !ALLOW_UNVERIFIED;
 
 // --- On-chain settlement verification -------------------------------------
 // Canonical native-USDC (Circle-issued) contract addresses per chain. Used to
@@ -560,7 +569,11 @@ const server = http.createServer(async (req, res) => {
         streams: ["R01", "R05", "R07", "R09"],
         payTo: PAY_TO,
         network: NETWORK,
+        // dryRun = Shopify attribution only; on-chain settle is gated by onChainVerify
         dryRun: DRY_RUN,
+        shopifyAttributionDryRun: DRY_RUN,
+        onChainVerify: ONCHAIN_VERIFY,
+        allowUnverified: ALLOW_UNVERIFIED,
         port: PORT,
       });
     }
@@ -660,10 +673,11 @@ const server = http.createServer(async (req, res) => {
         proof.amountDisplay ||
         String(Number(proof.amountAtomic) / 1e6);
 
-      // Real path: never trust a caller-supplied proof.verified. DRY_RUN and
-      // ALLOW_UNVERIFIED are the only scaffold escape hatches, unchanged from before.
+      // Real path: never trust a caller-supplied proof.verified.
+      // ALLOW_UNVERIFIED is the only scaffold that skips RPC verification.
+      // Missing Shopify token only dry-runs attribution — not chain verify.
       let verification = null;
-      if (!DRY_RUN && !ALLOW_UNVERIFIED) {
+      if (ONCHAIN_VERIFY) {
         const minRequiredAtomic = usdToAtomic(cat.price_usd);
         if (BigInt(String(proof.amountAtomic)) < BigInt(minRequiredAtomic)) {
           return json(res, 402, {
@@ -698,7 +712,7 @@ const server = http.createServer(async (req, res) => {
         currencyCode: "USD",
         x402Nonce: proof.x402Nonce || randomBytes(8).toString("hex"),
         x402Resource: resource,
-        verified: DRY_RUN || ALLOW_UNVERIFIED || Boolean(verification?.ok),
+        verified: ALLOW_UNVERIFIED || Boolean(verification?.ok),
         lineItems: proof.lineItems || [
           {
             title: cat.title,
@@ -709,7 +723,7 @@ const server = http.createServer(async (req, res) => {
         ],
       };
 
-      // Prefer dry-run CLI when no Shopify token; live settle otherwise
+      // Shopify: dry-run CLI when no token; live orderCreate otherwise
       const cli = DRY_RUN
         ? await runCli(["dry-run", proofPayload.txHash])
         : await runCli(["settle", JSON.stringify(proofPayload)]);
@@ -760,7 +774,12 @@ const server = http.createServer(async (req, res) => {
                 reason: verification.reason || null,
                 transferFrom: verification.transferFrom || null,
               }
-            : { ok: null, reason: ALLOW_UNVERIFIED ? "allow_unverified_scaffold" : "dry_run" },
+            : {
+                ok: null,
+                reason: ALLOW_UNVERIFIED
+                  ? "allow_unverified_scaffold"
+                  : "verification_not_run",
+              },
           mint_id: mint?.id || null,
           mint_prefix: mint?.prefix || null,
         };
@@ -851,7 +870,9 @@ if (isMain) {
         listening: `http://${BIND}:${PORT}`,
         service: "x402-monetize-server",
         payTo: PAY_TO,
-        dryRun: DRY_RUN,
+        shopifyAttributionDryRun: DRY_RUN,
+        onChainVerify: ONCHAIN_VERIFY,
+        allowUnverified: ALLOW_UNVERIFIED,
         catalog: Object.keys(CATALOG).length,
       }),
     );
